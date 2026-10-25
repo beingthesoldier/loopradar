@@ -17,16 +17,18 @@ Open http://localhost:8000. Stop the server with `Ctrl+C`. (macOS has `python3` 
 ## Structure
 
 ```
-index.html              gallery: categories, grid, preview + "Try it"
-assets/css/site.css     gallery styles
-assets/js/catalog.js    categories and visuals (each visual = preset + look)
+index.html              gallery: header, categories, grid, preview + "Try it"
+assets/css/base.css     shared tokens, type and the header (both pages)
+assets/css/site.css     gallery layout
+assets/css/studio.css   studio layout
+assets/js/header.js     account button in the header
+assets/js/catalog.js    categories and visuals (each visual = preset + starting look)
 assets/js/site.js       gallery logic and routing (#/category/visual)
 assets/posters/         one still per visual, used in the grid
-studio/index.html       the generator (analysis, presets RADAR / VEIL / BLOOM, export)
+studio/index.html       the studio for one visual: its settings, your beat, export
 studio/demo.mp3         demo beat the studio and previews use
 tools/make-posters.mjs  re-renders the posters from the studio
 ```
-
 The studio still lives in one file; splitting it into modules (analysis, each preset, export, UI) is the next step.
 
 ## Add a visual
@@ -35,4 +37,4 @@ The studio still lives in one file; splitting it into modules (analysis, each pr
 2. Add an entry to `VISUALS` in `assets/js/catalog.js` with an `id`, `title`, `category`, `preset` and the `look` settings.
 3. Make its poster: `npm install && npm run posters -- <id>`.
 
-Studio links: `studio/?visual=<id>` opens the studio with that look; `&embed=1` turns it into the silent looping preview the gallery shows.
+Studio links: `studio/?visual=<id>` opens the studio for that visual with only its own settings (colours and palettes are settings, not separate visuals); `&embed=1` turns it into the silent looping preview the gallery shows. Each visual's last settings are remembered per browser.

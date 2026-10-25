@@ -1,7 +1,6 @@
 import { CATEGORIES, VISUALS, findVisual } from './catalog.js';
 
 const $ = id => document.getElementById(id);
-const PRESET_NAMES = { radar: 'Radar preset', veil: 'Veil preset', bloom: 'Bloom preset' };
 const poster = v => `assets/posters/${v.id}.jpg`;
 const catName = id => id === 'all' ? 'All' : (CATEGORIES.find(c => c.id === id) || {}).name || 'All';
 
@@ -35,7 +34,7 @@ function renderGrid(cat) {
     img.onerror = () => { img.remove(); };
     th.appendChild(img);
     const t = document.createElement('span'); t.className = 't'; t.textContent = v.title;
-    const s = document.createElement('span'); s.className = 's'; s.textContent = PRESET_NAMES[v.preset] || '';
+    const s = document.createElement('span'); s.className = 's'; s.textContent = v.line || '';
     a.append(th, t, s); grid.appendChild(a);
   });
 }
@@ -46,7 +45,7 @@ function renderDetail(cat, v) {
   const prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length];
   $('back').href = `#/${cat}`; $('back').textContent = `← ${catName(cat)}`;
   $('detailTitle').textContent = v.title;
-  $('detailMeta').textContent = `${catName(v.category)} · ${PRESET_NAMES[v.preset] || ''}`;
+  $('detailMeta').textContent = catName(v.category);
   $('detailAbout').textContent = v.about;
   $('tryIt').href = `studio/?visual=${encodeURIComponent(v.id)}`;
   $('prev').href = `#/${cat}/${prev.id}`; $('next').href = `#/${cat}/${next.id}`;
