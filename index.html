@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Loop Radar</title>
+<meta name="description" content="Generative visuals for beats and loops. Pick a visual, try it on your own track, export a vertical video.">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+<div class="site">
+  <aside class="side">
+    <a class="brand" href="#/all">Loop Radar</a>
+    <nav class="cats" id="cats" aria-label="Categories"></nav>
+    <p class="cat-note" id="catNote"></p>
+    <div class="side-foot">
+      <a href="studio/">Open the studio</a>
+      <span>Generative visuals for beats &amp; loops</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="grid" id="grid" aria-live="polite"></section>
+
+    <section class="detail" id="detail" hidden>
+      <a class="back" id="back" href="#/all">← All</a>
+      <div class="viewer">
+        <div class="screen" id="screen">
+          <img id="detailPoster" alt="">
+          <iframe id="preview" title="Live preview" loading="lazy"></iframe>
+        </div>
+        <div class="caption">
+          <h1 id="detailTitle"></h1>
+          <p class="meta" id="detailMeta"></p>
+          <p class="about" id="detailAbout"></p>
+          <a class="try" id="tryIt" href="studio/">Try it</a>
+          <nav class="step" aria-label="More visuals">
+            <a id="prev" href="#">← Previous</a>
+            <a id="next" href="#">Next →</a>
+          </nav>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script type="module" src="assets/js/site.js"></script>
+</body>
+</html>
