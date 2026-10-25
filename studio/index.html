@@ -127,6 +127,15 @@ input[type=range]:focus-visible{outline:1px solid var(--bone);outline-offset:3px
 .progress{height:3px;background:var(--line);width:100%}
 .progress i{display:block;height:100%;width:0;background:var(--rec)}
 
+/* embed: just the frame, animated without sound, used for previews on the gallery */
+body.embed{padding:0;background:#fff;overflow:hidden}
+body.embed .top,body.embed .rack,body.embed .transport,body.embed .result{display:none}
+body.embed .app{display:block;max-width:none}
+body.embed .stage{position:static}
+body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
+.home{color:var(--mute);font-size:12px}
+.home:hover{color:var(--fg)}
+
 @media (max-width:860px){
   .app{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "stage" "rack"}
   .stage{position:static}
@@ -139,6 +148,7 @@ input[type=range]:focus-visible{outline:1px solid var(--bone);outline-offset:3px
 <div class="app">
   <header class="top">
     <div class="brand">LOOP RADAR</div>
+    <a class="home" href="../">← all visuals</a>
     <div class="sub">generative visuals for beats &amp; loops · 9:16</div>
     <div class="status" id="status" data-s="busy">loading demo beat…</div>
   </header>
@@ -1412,6 +1422,7 @@ function render(tau) {
 /* ---------------- transport ---------------- */
 function currentTau() {
   const sl = segLen();
+  if (S.embed) return mod(performance.now() / 1000, sl);
   if (S.recording) { const t = actx.currentTime - S.recT0; return t < 0 ? 0 : mod(t, sl); }
   if (S.playing) { const lat = (actx.outputLatency || actx.baseLatency || 0); return mod(actx.currentTime - S.t0 - lat, sl); }
   return S.tau;
@@ -1545,7 +1556,7 @@ function setPreset(v) {
   S.preset = ['radar', 'veil', 'bloom'].includes(v) ? v : 'radar'; pressIn('preset', S.preset);
   for (const k of ['radar', 'veil', 'bloom']) $('look-' + k).hidden = S.preset !== k;
   $('presetHint').textContent = PRESET_HINTS[S.preset];
-  try { localStorage.setItem('lr.preset', S.preset); } catch (e) {}
+  if (!S.embed) { try { localStorage.setItem('lr.preset', S.preset); } catch (e) {} }
 }
 segGroup('preset', setPreset);
 segGroup('len', v => { S.lenBars = +v; $('lenNum').value = v; rebuild(); restartIfPlaying(); });
@@ -1669,8 +1680,24 @@ fontsReady
   .then(ab => loadArrayBuffer(ab, '134_gm_anx87hosty.mp3'))
   .catch(() => { status('drop a beat on the left', 'ok'); $('fileName').textContent = 'no file chosen'; });
 
-window.__LR = { S, render, setTau: t => { S.tau = t; }, setPreset, BLOOM };
+// open a gallery visual: ?visual=<id> applies its look; with &embed=1 the page becomes a silent, looping preview
+function useVisual(v, embed) {
+  if (!v || !v.look) return;
+  if (embed) {
+    S.embed = true; document.body.classList.add('embed');
+    applyAll(Object.assign({ res: 720, title: 'DIGITAL HEAVEN', tag: 'PROD. ANX', key: 'G MIN', lenBars: 8 }, v.look));
+  } else {
+    applyAll(v.look); saveSoon();
+    status(`loaded “${v.title}”. Drop your own beat on the left`, 'ok');
+  }
+}
+window.__LR = { S, render, setTau: t => { S.tau = t; }, setPreset, BLOOM, useVisual };
 })();
+</script>
+<script type="module">
+import { findVisual } from '../assets/js/catalog.js';
+const q = new URLSearchParams(location.search), v = findVisual(q.get('visual') || '');
+if (v) window.__LR.useVisual(v, q.get('embed') === '1');
 </script>
 
 </body>
