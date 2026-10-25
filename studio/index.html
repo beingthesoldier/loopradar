@@ -3,159 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
-<title>Loop Radar</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>Studio · Loop Radar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- fonts drawn inside the video frame -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=IBM+Plex+Mono:wght@400;500&family=Michroma&display=swap">
-<style>
-/* Layout: instrument console. Control rack on the left, the 9:16 frame is the hero on the right (stacks frame-first on phones). */
-:root{
-  color-scheme: dark;
-  --bg:#0a0b0c;
-  --rack:#101213;
-  --field:#16191a;
-  --line:#252a2c;
-  --line-hi:#3b4245;
-  --fg:#dfe2dc;
-  --mute:#7f878a;
-  --bone:#ebe6d8;
-  --rec:#ff5b4f;
-  --display:"Michroma","Eurostile","Arial Black",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-}
-*{box-sizing:border-box}
-body{
-  background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:13px;line-height:1.5;
-  padding-left:max(16px,env(safe-area-inset-left,0px));
-  padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:20px 40px;
-}
-.app{
-  max-width:1280px;margin:0 auto;display:grid;gap:20px 32px;
-  grid-template-columns:minmax(0,350px) minmax(0,1fr);
-  grid-template-areas:"top top" "rack stage";
-}
-.top{grid-area:top;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;border-bottom:1px solid var(--line);padding-bottom:14px}
-.brand{font-family:var(--display);font-size:17px;letter-spacing:.32em;color:var(--bone)}
-.sub{color:var(--mute);font-size:12px;letter-spacing:.04em}
-.status{margin-left:auto;font-size:12px;color:var(--mute);display:flex;align-items:center;gap:8px;min-width:0}
-.status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mute);flex:none}
-.status[data-s="ok"]::before{background:var(--bone)}
-.status[data-s="busy"]::before{background:var(--bone);animation:blink 1s steps(2) infinite}
-.status[data-s="rec"]::before{background:var(--rec);animation:blink .8s steps(2) infinite}
-.status[data-s="err"]::before{background:var(--rec)}
-@keyframes blink{50%{opacity:.15}}
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/studio.css">
+</head>
+<body>
+<header class="hdr">
+  <a class="logo" href="../#/all">Loop Radar</a>
+  <div class="acct">
+    <button class="acct-btn" type="button" aria-label="Account" aria-expanded="false" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg></button>
+    <div class="acct-menu" hidden><strong>Account</strong><span>Sign in is coming soon.</span></div>
+  </div>
+</header>
 
-.rack{grid-area:rack;display:flex;flex-direction:column;gap:2px;min-width:0}
-.grp{background:var(--rack);border:1px solid var(--line);padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px}
-.grp h2{margin:0;font-family:var(--display);font-weight:400;font-size:10px;letter-spacing:.28em;color:var(--mute);display:flex;justify-content:space-between}
-.grp h2 span{font-family:var(--mono);letter-spacing:.06em;color:var(--line-hi)}
-.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.f{display:flex;flex-direction:column;gap:5px;min-width:0}
-.f > label,.lbl{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;gap:8px}
-.lbl output,.f > label output{color:var(--fg);letter-spacing:.04em;text-transform:none;font-variant-numeric:tabular-nums}
-input[type=text],input[type=number]{
-  width:100%;background:var(--field);border:1px solid var(--line);color:var(--fg);
-  font:500 13px/1 var(--mono);padding:9px 10px;border-radius:2px;outline:none;
-}
-input[type=text]:focus-visible,input[type=number]:focus-visible{border-color:var(--bone)}
-input[type=range]{width:100%;accent-color:var(--bone);margin:2px 0}
-input[type=range]:focus-visible{outline:1px solid var(--bone);outline-offset:3px}
-.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
-.seg button{
-  flex:1;background:var(--field);color:var(--mute);border:0;border-right:1px solid var(--line);
-  font:500 12px/1 var(--mono);padding:9px 4px;cursor:pointer;letter-spacing:.04em;min-width:0
-}
-.seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--bone);color:#0b0b0a}
-.seg button:hover:not([aria-pressed="true"]){color:var(--fg)}
-.seg button:focus-visible,.btn:focus-visible{outline:1px solid var(--bone);outline-offset:2px}
-.seg.big button{padding:13px 4px;font-family:var(--display);font-size:10.5px;letter-spacing:.24em}
-.drop{
-  border:1px dashed var(--line-hi);padding:14px;display:flex;flex-direction:column;gap:4px;cursor:pointer;
-  background:var(--field);border-radius:2px
-}
-.drop:hover,.drop.over{border-color:var(--bone)}
-.drop strong{font-weight:500;color:var(--fg);overflow-wrap:anywhere}
-.drop small{color:var(--mute);font-size:11.5px}
-.drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-.drop:focus-within{border-color:var(--bone)}
-.hint{color:var(--mute);font-size:11.5px;margin:0;line-height:1.45}
-.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{
-  background:var(--field);color:var(--fg);border:1px solid var(--line-hi);border-radius:2px;
-  font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;cursor:pointer
-}
-.btn:hover{border-color:var(--bone)}
-.btn:disabled{opacity:.4;cursor:default}
-.btn.primary{background:var(--bone);color:#0b0b0a;border-color:var(--bone)}
-.btn.rec{display:flex;align-items:center;justify-content:center;gap:10px}
-.btn.rec::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rec)}
-.btn.small{padding:7px 10px;font-size:11px}
-.looks{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;border:1px solid var(--line-hi);border-radius:14px;overflow:hidden}
-.chip button{background:var(--field);color:var(--fg);border:0;font:500 11.5px/1 var(--mono);padding:7px 10px;cursor:pointer}
-.chip button:hover{color:var(--bone)}
-.chip button.x{color:var(--mute);padding:7px 9px;border-left:1px solid var(--line)}
-.chip button:focus-visible{outline:1px solid var(--bone);outline-offset:-2px}
-.saverow{display:flex;gap:8px}
-.saverow input{flex:1;min-width:0}
-.swatches{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.swatches button{width:30px;height:30px;padding:3px;background:var(--field);border:1px solid var(--line);border-radius:50%;cursor:pointer}
-.swatches button i{display:block;width:100%;height:100%;border-radius:50%}
-.swatches button[aria-pressed="true"]{border:2px solid var(--bone);padding:2px}
-.swatches button:focus-visible{outline:1px solid var(--bone);outline-offset:2px}
-.pick{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:15px;padding:2px 10px 2px 3px;background:var(--field);cursor:pointer;color:var(--mute);font-size:11.5px}
-.pick.on{border-color:var(--bone);color:var(--fg)}
-.pick input{width:24px;height:24px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer}
-.pick input::-webkit-color-swatch-wrapper{padding:0}
-.pick input::-webkit-color-swatch{border:0;border-radius:50%}
-.pick input::-moz-color-swatch{border:0;border-radius:50%}
-
-.stage{grid-area:stage;display:flex;flex-direction:column;align-items:center;gap:12px;position:sticky;top:max(16px,env(safe-area-inset-top,0px));align-self:start;min-width:0}
-.frame{width:min(100%, calc((100vh - 150px) * 9 / 16));min-width:0;max-width:100%;aspect-ratio:9/16;background:#000;border:1px solid var(--line);position:relative}
-.frame canvas{display:block;width:100%;height:100%}
-.transport{width:min(100%, calc((100vh - 150px) * 9 / 16));display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.tc{font-variant-numeric:tabular-nums;color:var(--fg);font-size:13px}
-.seginfo{margin-left:auto;color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
-.result{width:min(100%, 520px);background:var(--rack);border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
-.result video{width:100%;max-height:60vh;background:#000;display:block}
-.result .meta{color:var(--mute);font-size:12px}
-.progress{height:3px;background:var(--line);width:100%}
-.progress i{display:block;height:100%;width:0;background:var(--rec)}
-
-/* embed: just the frame, animated without sound, used for previews on the gallery */
-body.embed{padding:0;background:#fff;overflow:hidden}
-body.embed .top,body.embed .rack,body.embed .transport,body.embed .result{display:none}
-body.embed .app{display:block;max-width:none}
-body.embed .stage{position:static}
-body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
-.home{color:var(--mute);font-size:12px}
-.home:hover{color:var(--fg)}
-
-@media (max-width:860px){
-  .app{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "stage" "rack"}
-  .stage{position:static}
-  .frame,.transport{width:min(100%, 440px)}
-  .status{margin-left:0;width:100%}
-}
-@media (prefers-reduced-motion:reduce){.status::before{animation:none!important}}
-</style>
-
-<div class="app">
-  <header class="top">
-    <div class="brand">LOOP RADAR</div>
-    <a class="home" href="../">← all visuals</a>
-    <div class="sub">generative visuals for beats &amp; loops · 9:16</div>
-    <div class="status" id="status" data-s="busy">loading demo beat…</div>
-  </header>
-
+<div class="studio wrap">
   <aside class="rack">
+    <div class="intro">
+      <a class="back" id="vBack" href="../#/all">← All visuals</a>
+      <h1 id="vTitle">Studio</h1>
+      <p id="vAbout"></p>
+      <div class="status" id="status" data-s="busy">loading demo beat…</div>
+    </div>
+
     <section class="grp">
-      <h2>TRACK <span>01</span></h2>
+      <h2>Your beat</h2>
       <label class="drop" id="drop" for="file">
         <strong id="fileName">demo: 134_gm_anx87hosty.mp3</strong>
         <small>Drop a WAV or MP3 here, or click to choose one. BPM and key are read from the file name when they're in it.</small>
@@ -163,84 +38,8 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
       </label>
     </section>
 
-    <section class="grp">
-      <h2>PRESET <span>02</span></h2>
-      <div class="seg big" id="preset">
-        <button type="button" id="preset-radar" data-v="radar" aria-pressed="true">RADAR</button>
-        <button type="button" id="preset-veil" data-v="veil" aria-pressed="false">VEIL</button>
-        <button type="button" id="preset-bloom" data-v="bloom" aria-pressed="false">BLOOM</button>
-      </div>
-      <p class="hint" id="presetHint"></p>
-    </section>
-
-    <section class="grp">
-      <h2>MY LOOKS <span>saved</span></h2>
-      <div class="looks" id="looks"></div>
-      <div class="saverow">
-        <input type="text" id="lookName" placeholder="Name this look" maxlength="24" aria-label="Look name">
-        <button type="button" class="btn small" id="lookSave">Save look</button>
-      </div>
-      <p class="hint" id="looksHint">A look keeps the preset and all its settings. Looks and your last settings are kept in this browser.</p>
-    </section>
-
-    <section class="grp">
-      <h2>LABELS <span>03</span></h2>
-      <div class="f"><label for="title">Title</label><input type="text" id="title" value="DIGITAL HEAVEN" maxlength="28"></div>
-      <div class="row">
-        <div class="f"><label for="tag">Tag</label><input type="text" id="tag" value="PROD. ANX" maxlength="24"></div>
-        <div class="f"><label for="key">Key</label><input type="text" id="key" value="G MIN" maxlength="8"></div>
-      </div>
-      <div class="row">
-        <div class="f"><label for="bpm">BPM</label><input type="number" id="bpm" value="134" min="50" max="220" step="0.01"></div>
-        <div class="f"><label for="offset">Grid offset, ms</label><input type="number" id="offset" value="0" min="-500" max="500" step="1"></div>
-      </div>
-    </section>
-
-    <section class="grp">
-      <h2>SECTION <span>04</span></h2>
-      <div class="f">
-        <div class="lbl"><span>Length, bars</span></div>
-        <div class="seg" id="len">
-          <button type="button" id="len-4" data-v="4" aria-pressed="false">4</button>
-          <button type="button" id="len-8" data-v="8" aria-pressed="true">8</button>
-          <button type="button" id="len-12" data-v="12" aria-pressed="false">12</button>
-          <button type="button" id="len-16" data-v="16" aria-pressed="false">16</button>
-          <button type="button" id="len-18" data-v="18" aria-pressed="false">18</button>
-          <button type="button" id="len-20" data-v="20" aria-pressed="false">20</button>
-        </div>
-      </div>
-      <div class="f">
-        <label for="lenNum">Custom length, bars</label>
-        <input type="number" id="lenNum" value="8" min="1" max="64" step="1">
-      </div>
-      <div class="f">
-        <label for="start"><span>Start at bar</span><output id="startOut">5</output></label>
-        <input type="range" id="start" min="0" max="58" step="1" value="4">
-      </div>
-      <div class="inline">
-        <button type="button" class="btn small" id="auto">Auto: busiest part</button>
-        <span class="hint" id="segHint"></span>
-      </div>
-    </section>
-
-    <section class="grp">
-      <h2>HITS <span>05</span></h2>
-      <div class="f">
-        <label for="sens"><span>Hit sensitivity</span><output id="sensOut">55</output></label>
-        <input type="range" id="sens" min="0" max="1" step="0.01" value="0.55">
-      </div>
-      <div class="f">
-        <div class="lbl"><span>Snap hits to grid</span></div>
-        <div class="seg" id="quant">
-          <button type="button" id="quant-0" data-v="0" aria-pressed="false">off</button>
-          <button type="button" id="quant-16" data-v="16" aria-pressed="true">1/16</button>
-          <button type="button" id="quant-32" data-v="32" aria-pressed="false">1/32</button>
-        </div>
-      </div>
-    </section>
-
     <section class="grp" id="look-radar">
-      <h2>LOOK · RADAR <span>06</span></h2>
+      <h2>Look</h2>
       <div class="f">
         <div class="lbl"><span>One sweep rotation</span></div>
         <div class="seg" id="sweep">
@@ -267,7 +66,7 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
     </section>
 
     <section class="grp" id="look-veil" hidden>
-      <h2>LOOK · VEIL <span>06</span></h2>
+      <h2>Look</h2>
       <div class="f">
         <div class="lbl"><span>Shape</span></div>
         <div class="seg" id="vshape">
@@ -319,7 +118,7 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
     </section>
 
     <section class="grp" id="look-bloom" hidden>
-      <h2>LOOK · BLOOM <span>06</span></h2>
+      <h2>Look</h2>
       <div class="f">
         <div class="lbl"><span>Palette</span></div>
         <div class="seg" id="bpal">
@@ -386,7 +185,73 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
     </section>
 
     <section class="grp">
-      <h2>EXPORT <span>07</span></h2>
+      <h2>Labels</h2>
+      <div class="f"><label for="title">Title</label><input type="text" id="title" value="DIGITAL HEAVEN" maxlength="28"></div>
+      <div class="row">
+        <div class="f"><label for="tag">Tag</label><input type="text" id="tag" value="PROD. ANX" maxlength="24"></div>
+        <div class="f"><label for="key">Key</label><input type="text" id="key" value="G MIN" maxlength="8"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label for="bpm">BPM</label><input type="number" id="bpm" value="134" min="50" max="220" step="0.01"></div>
+        <div class="f"><label for="offset">Grid offset, ms</label><input type="number" id="offset" value="0" min="-500" max="500" step="1"></div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <h2>Section</h2>
+      <div class="f">
+        <div class="lbl"><span>Length, bars</span></div>
+        <div class="seg" id="len">
+          <button type="button" id="len-4" data-v="4" aria-pressed="false">4</button>
+          <button type="button" id="len-8" data-v="8" aria-pressed="true">8</button>
+          <button type="button" id="len-12" data-v="12" aria-pressed="false">12</button>
+          <button type="button" id="len-16" data-v="16" aria-pressed="false">16</button>
+          <button type="button" id="len-18" data-v="18" aria-pressed="false">18</button>
+          <button type="button" id="len-20" data-v="20" aria-pressed="false">20</button>
+        </div>
+      </div>
+      <div class="f">
+        <label for="lenNum">Custom length, bars</label>
+        <input type="number" id="lenNum" value="8" min="1" max="64" step="1">
+      </div>
+      <div class="f">
+        <label for="start"><span>Start at bar</span><output id="startOut">5</output></label>
+        <input type="range" id="start" min="0" max="58" step="1" value="4">
+      </div>
+      <div class="inline">
+        <button type="button" class="btn small" id="auto">Auto: busiest part</button>
+        <span class="hint" id="segHint"></span>
+      </div>
+    </section>
+
+    <section class="grp">
+      <h2>Hits</h2>
+      <div class="f">
+        <label for="sens"><span>Hit sensitivity</span><output id="sensOut">55</output></label>
+        <input type="range" id="sens" min="0" max="1" step="0.01" value="0.55">
+      </div>
+      <div class="f">
+        <div class="lbl"><span>Snap hits to grid</span></div>
+        <div class="seg" id="quant">
+          <button type="button" id="quant-0" data-v="0" aria-pressed="false">off</button>
+          <button type="button" id="quant-16" data-v="16" aria-pressed="true">1/16</button>
+          <button type="button" id="quant-32" data-v="32" aria-pressed="false">1/32</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <h2>My looks</h2>
+      <div class="looks" id="looks"></div>
+      <div class="saverow">
+        <input type="text" id="lookName" placeholder="Name this look" maxlength="24" aria-label="Look name">
+        <button type="button" class="btn small" id="lookSave">Save look</button>
+      </div>
+      <p class="hint" id="looksHint">Save the settings of this visual under a name. Looks are kept in this browser.</p>
+    </section>
+
+    <section class="grp">
+      <h2>Export</h2>
       <div class="row">
         <div class="f">
           <div class="lbl"><span>Size</span></div>
@@ -408,6 +273,16 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));border:0;margin:0 auto}
       <button type="button" class="btn rec" id="rec">Record video</button>
       <div class="progress" id="recProg" hidden><i id="recBar"></i></div>
       <p class="hint" id="recHint">Recording runs in real time, with sound. Keep this tab in front while it records, or the browser slows the animation down. The offset moves only the audio; the visual stays on the grid. Plus means audio later: if you hear a hit before its flash, raise it; if after, lower it.</p>
+    </section>
+
+    <section class="grp" hidden>
+      <h2>PRESET <span>02</span></h2>
+      <div class="seg big" id="preset">
+        <button type="button" id="preset-radar" data-v="radar" aria-pressed="true">RADAR</button>
+        <button type="button" id="preset-veil" data-v="veil" aria-pressed="false">VEIL</button>
+        <button type="button" id="preset-bloom" data-v="bloom" aria-pressed="false">BLOOM</button>
+      </div>
+      <p class="hint" id="presetHint"></p>
     </section>
   </aside>
 
@@ -1640,19 +1515,19 @@ function syncUI() {
 }
 function applyAll(o) { applySnap(o); syncUI(); setupCanvas(); if (S.A) pickOnsets(); rebuild(); restartIfPlaying(); }
 let saveT = 0;
-function saveSoon() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem('lr.settings', JSON.stringify(snap(ALL_KEYS))); } catch (e) {} }, 300); }
+function saveSoon() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem('lr.settings', JSON.stringify(snap(ALL_KEYS))); if (S.visual && !S.embed) localStorage.setItem('lr.v.' + S.visual.id, JSON.stringify(snap(LOOK_KEYS))); } catch (e) {} }, 300); }
 ['input', 'change', 'click'].forEach(ev => document.querySelector('.rack').addEventListener(ev, saveSoon));
 function getLooks() { try { const a = JSON.parse(localStorage.getItem('lr.looks') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function setLooks(a) { try { localStorage.setItem('lr.looks', JSON.stringify(a)); return true; } catch (e) { return false; } }
 function renderLooks() {
-  const box = $('looks'), looks = getLooks(); box.textContent = '';
-  if (!looks.length) { const sp = document.createElement('span'); sp.className = 'hint'; sp.textContent = 'No saved looks yet. Set everything up, name it and save.'; box.appendChild(sp); return; }
-  looks.forEach((lk, i) => {
+  const box = $('looks'), looks = getLooks().filter(l => l.data && l.data.preset === S.preset && (!S.visual || !S.visual.look.veil || !l.data.veil || l.data.veil.shape === S.visual.look.veil.shape)); box.textContent = '';
+  if (!looks.length) { const sp = document.createElement('span'); sp.className = 'hint'; sp.textContent = 'No saved looks for this visual yet.'; box.appendChild(sp); return; }
+  looks.forEach(lk => {
     const chip = document.createElement('span'); chip.className = 'chip';
     const a = document.createElement('button'); a.type = 'button'; a.textContent = lk.name; a.title = 'Apply ' + lk.name;
     a.addEventListener('click', () => { applyAll(lk.data); saveSoon(); $('looksHint').textContent = 'Applied: ' + lk.name; });
     const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.setAttribute('aria-label', 'Delete ' + lk.name);
-    x.addEventListener('click', () => { const l = getLooks(); l.splice(i, 1); setLooks(l); renderLooks(); $('looksHint').textContent = 'Deleted: ' + lk.name; });
+    x.addEventListener('click', () => { setLooks(getLooks().filter(q => q.name !== lk.name)); renderLooks(); $('looksHint').textContent = 'Deleted: ' + lk.name; });
     chip.append(a, x); box.appendChild(chip);
   });
 }
@@ -1681,24 +1556,34 @@ fontsReady
   .catch(() => { status('drop a beat on the left', 'ok'); $('fileName').textContent = 'no file chosen'; });
 
 // open a gallery visual: ?visual=<id> applies its look; with &embed=1 the page becomes a silent, looping preview
-function useVisual(v, embed) {
+function useVisual(v, embed, cat) {
   if (!v || !v.look) return;
   if (embed) {
     S.embed = true; document.body.classList.add('embed');
     applyAll(Object.assign({ res: 720, title: 'DIGITAL HEAVEN', tag: 'PROD. ANX', key: 'G MIN', lenBars: 8 }, v.look));
-  } else {
-    applyAll(v.look); saveSoon();
-    status(`loaded “${v.title}”. Drop your own beat on the left`, 'ok');
+    return;
   }
+  S.visual = v;
+  // the visual's own settings: its starting look, then whatever this viewer last set for it
+  let mine = null; try { mine = JSON.parse(localStorage.getItem('lr.v.' + v.id) || 'null'); } catch (e) {}
+  applyAll(Object.assign({}, v.look));
+  if (mine) applyAll(Object.assign({}, mine, { preset: v.look.preset }, v.look.veil && v.look.veil.shape ? { veil: Object.assign({}, mine.veil, { shape: v.look.veil.shape }) } : {}));
+  for (const id of v.hide || []) { const el = $(id); if (el) el.closest('.f').hidden = true; }
+  $('vTitle').textContent = v.title; $('vAbout').textContent = v.about || '';
+  $('vBack').href = `../#/${v.category}`; $('vBack').textContent = `← ${cat || 'All visuals'}`;
+  document.title = `${v.title} · Loop Radar`;
+  renderLooks();
 }
 window.__LR = { S, render, setTau: t => { S.tau = t; }, setPreset, BLOOM, useVisual };
 })();
 </script>
 <script type="module">
-import { findVisual } from '../assets/js/catalog.js';
-const q = new URLSearchParams(location.search), v = findVisual(q.get('visual') || '');
-if (v) window.__LR.useVisual(v, q.get('embed') === '1');
+import { findVisual, VISUALS, CATEGORIES } from '../assets/js/catalog.js';
+const q = new URLSearchParams(location.search), v = findVisual(q.get('visual') || '') || VISUALS[0];
+const cat = (CATEGORIES.find(c => c.id === v.category) || {}).name;
+window.__LR.useVisual(v, q.get('embed') === '1', cat);
 </script>
+<script type="module" src="../assets/js/header.js"></script>
 
 </body>
 </html>
