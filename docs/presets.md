@@ -9,9 +9,9 @@ import { S, segLen, barDur } from '../state.js';
 import { ctx, W, H, u, cx, grain, spaced, MONO } from '../render/canvas.js';
 import { mod, TAU, rgba, fmtT } from '../util.js';
 
-const METRO = {
-  id: 'metro',                 // also the key of its settings: S.metro
-  name: 'Metro',
+const TIDE = {
+  id: 'tide',                  // also the key of its settings: S.tide
+  name: 'Tide',
   defaults: { pal: 'paper', lines: 3 },
   controls: [
     { key: 'pal',   label: 'Palette', type: 'choice', options: [['paper', 'paper'], ['night', 'night']], then: 'buildBG' },
@@ -22,7 +22,7 @@ const METRO = {
   prepare(seg) { /* optional: precompute per-hit data after the hits are read (angles, labels…) */ },
   draw(tau, F) { /* draw the whole frame for time tau (seconds into the section) */ }
 };
-export default METRO;
+export default TIDE;
 ```
 
 Then register it in `studio/js/presets/index.js` and give it at least one visual in `assets/js/catalog.js`.
