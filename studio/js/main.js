@@ -9,6 +9,8 @@ import { rebuild } from './audio/hits.js';
 import { actx, currentTau } from './audio/transport.js';
 import { loadArrayBuffer } from './audio/load.js';
 import { finishRecording } from './export/recorder.js';
+import { setupExport } from './export/index.js';
+import { exportFrames, measureDelay } from './export/frames.js';
 import { wireControls } from './ui/controls.js';
 import { applyAll, restoreAtBoot, syncUI, renderLooks, wireSettings, saveSoon, loadVisualSettings } from './ui/settings.js';
 import { findVisual, VISUALS, CATEGORIES } from '../../assets/js/catalog.js';
@@ -37,6 +39,7 @@ function useVisual(v, embed) {
 }
 
 function loop() {
+  if (S.exporting) { requestAnimationFrame(loop); return; }   // the export draws its own frames
   S.frame++;
   const tau = currentTau();
   render(tau);
@@ -57,6 +60,7 @@ setupCanvas(); syncUI(); rebuild(); renderLooks();
 const q = new URLSearchParams(location.search);
 useVisual(findVisual(q.get('visual') || '') || VISUALS[0], q.get('embed') === '1');
 requestAnimationFrame(loop);
+if (!S.embed) setupExport();
 
 const fontsReady = document.fonts ? Promise.all([
   document.fonts.load('400 30px Michroma'), document.fonts.load('500 20px "IBM Plex Mono"'), document.fonts.load('400 20px "IBM Plex Mono"'),
@@ -69,4 +73,4 @@ fontsReady
   .catch(() => { status('drop a beat on the left', 'ok'); $('fileName').textContent = 'no file chosen'; });
 
 // for the poster tool and quick checks in the console
-window.__LR = { S, render, setTau: t => { S.tau = t; }, useVisual, PRESETS, saveSoon };
+window.__LR = { S, render, setTau: t => { S.tau = t; }, useVisual, PRESETS, saveSoon, exportFrames, measureDelay };

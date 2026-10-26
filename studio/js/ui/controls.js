@@ -12,7 +12,7 @@ import { current } from '../presets/index.js';
 import { rebuild, pickOnsets, autoSegment } from '../audio/hits.js';
 import { setupCanvas } from '../render/engine.js';
 import { play, pause, restartIfPlaying } from '../audio/transport.js';
-import { startRecording } from '../export/recorder.js';
+import { onExportClick } from '../export/index.js';
 
 export function pressIn(id, v) { const g = $(id); if (g) g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false')); }
 function segGroup(id, cb) {
@@ -29,6 +29,7 @@ export function wireControls() {
   segGroup('quant', v => { S.quant = +v; rebuild(); });
   segGroup('res', v => { S.res = +v; setupCanvas(); });
   segGroup('loops', v => { S.loops = +v; });
+  segGroup('fps', v => { S.fps = +v; });
   slider('sens', v => { S.sens = v; pickOnsets(); rebuild(); });
   $('start').addEventListener('input', e => { S.startBar = +e.target.value; rebuild(); restartIfPlaying(); });
   $('auto').addEventListener('click', () => { autoSegment(); rebuild(); restartIfPlaying(); });
@@ -39,7 +40,7 @@ export function wireControls() {
   $('offset').addEventListener('change', e => { S.offset = clamp(+e.target.value || 0, -500, 500); e.target.value = S.offset; rebuild(); restartIfPlaying(); });
   $('lead').addEventListener('change', e => { S.lead = clamp(+e.target.value || 0, -300, 300); e.target.value = S.lead; });
   $('play').addEventListener('click', () => S.playing ? pause() : play());
-  $('rec').addEventListener('click', startRecording);
+  $('rec').addEventListener('click', onExportClick);
   document.addEventListener('keydown', e => {
     if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); S.playing ? pause() : play(); }
   });

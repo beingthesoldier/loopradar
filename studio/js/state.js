@@ -7,8 +7,8 @@ export const S = {
   preset: 'radar', visual: null, hide: [], embed: false,
   title: 'DIGITAL HEAVEN', tag: 'PROD. ANX', key: 'G MIN', bpm: 134, offset: 0,
   startBar: 4, lenBars: 8, sens: 0.55, quant: 16,
-  res: 1080, loops: 1, lead: 100,
-  playing: false, recording: false, t0: 0, tau: 0, recT0: 0, recTotal: 0,
+  res: 1080, loops: 1, lead: 100, fps: 30,
+  playing: false, recording: false, exporting: false, t0: 0, tau: 0, recT0: 0, recTotal: 0,
   frame: 0
 };
 

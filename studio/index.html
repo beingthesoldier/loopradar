@@ -128,10 +128,17 @@
           </div>
         </div>
       </div>
-      <div class="f"><label for="lead">Audio offset in export, ms</label><input type="number" id="lead" value="100" min="-300" max="300" step="5"></div>
-      <button type="button" class="btn rec" id="rec">Record video</button>
+      <div class="f" id="fpsRow" hidden>
+        <div class="lbl"><span>Frame rate</span></div>
+        <div class="seg" id="fps">
+          <button type="button" id="fps-30" data-v="30" aria-pressed="true">30 fps</button>
+          <button type="button" id="fps-60" data-v="60" aria-pressed="false">60 fps</button>
+        </div>
+      </div>
+      <div class="f" id="leadRow"><label for="lead">Audio offset in export, ms</label><input type="number" id="lead" value="100" min="-300" max="300" step="5"></div>
+      <button type="button" class="btn rec" id="rec">Export video</button>
       <div class="progress" id="recProg" hidden><i id="recBar"></i></div>
-      <p class="hint" id="recHint">Recording runs in real time, with sound. Keep this tab in front while it records, or the browser slows the animation down. The offset moves only the audio; the visual stays on the grid. Plus means audio later: if you hear a hit before its flash, raise it; if after, lower it.</p>
+      <p class="hint" id="recHint"></p>
     </section>
 
   </aside>

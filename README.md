@@ -33,7 +33,8 @@ studio/js/audio/           analysis (FFT, bands, hits, pitch), hits in the secti
 studio/js/render/          the frame (canvas.js) and drawing the current preset (engine.js)
 studio/js/presets/         one file per preset + index.js (the list)
 studio/js/ui/              settings panel built from each preset's controls, saved settings and looks
-studio/js/export/          video recording
+studio/js/export/          video export: frames.js (frame by frame), recorder.js (real-time fallback), result.js, mp4edit.js
+studio/js/vendor/          mp4-muxer 5.2.2 (MIT), writes the MP4 file
 studio/demo.mp3            demo beat the studio and previews use
 tools/make-posters.mjs     re-renders the posters from the studio
 docs/presets.md            how to write a preset
@@ -47,3 +48,11 @@ New presets: see [docs/presets.md](docs/presets.md).
 3. Make its poster: `npm install && npm run posters -- <id>`.
 
 Studio links: `studio/?visual=<id>` opens the studio for that visual with only its own settings (colours and palettes are settings, not separate visuals); `&embed=1` turns it into the silent looping preview the gallery shows. Each visual's last settings are remembered per browser.
+
+## Video export
+
+The studio exports frame by frame: each frame is drawn at its exact moment of the section and encoded with the browser's own H.264 encoder (WebCodecs), the sound is encoded straight from the decoded beat (AAC), and both are written into one MP4. Nothing runs in real time, so picture and sound line up to the sample, no frame is dropped, and a heavy visual just takes longer to export.
+
+AAC encoders put a few dozen milliseconds of silence ("priming") in front of the sound. The studio measures it with the same encoder and writes an edit list into the MP4 so players skip it; without that the whole soundtrack would play late.
+
+Browsers that can't encode video (no `VideoEncoder`) fall back to real-time recording of the preview, which needs the tab in front and the audio-offset nudge. Where there's no AAC encoder (Linux Chromium, Firefox) the sound is Opus, which Instagram may refuse.

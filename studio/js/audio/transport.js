@@ -32,7 +32,7 @@ export function startSource(dest, when, offsetInSeg) {
 }
 
 export async function play() {
-  if (!S.buffer || S.recording) return; ensureCtx(); await actx.resume();
+  if (!S.buffer || S.recording || S.exporting) return; ensureCtx(); await actx.resume();
   const when = actx.currentTime + 0.04, off = mod(S.tau, segLen());
   startSource(null, when, off); S.t0 = when - off; S.playing = true; $('play').textContent = '❚❚ Pause';
 }
