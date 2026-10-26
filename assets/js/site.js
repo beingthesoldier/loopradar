@@ -63,11 +63,11 @@ function renderDetail(cat, v) {
   $('detailTitle').textContent = v.title;
   $('detailMeta').textContent = catName(v.category);
   $('detailAbout').textContent = v.about;
-  $('tryIt').href = `studio/?visual=${encodeURIComponent(v.id)}`;
+  $('tryIt').href = `studio/index.html?visual=${encodeURIComponent(v.id)}`;
   $('prev').href = presetsHref(cat, prev); $('next').href = presetsHref(cat, next);
   const img = $('detailPoster'); img.src = poster(v); img.alt = v.title;
   const fr = $('preview'); fr.classList.remove('live');
-  const src = `studio/?visual=${encodeURIComponent(v.id)}&embed=1`;
+  const src = `studio/index.html?visual=${encodeURIComponent(v.id)}&embed=1`;
   if (fr.dataset.src !== src) {
     fr.dataset.src = src; fr.src = src;
     // the studio needs a moment to decode and analyse the demo beat; show the poster until then
