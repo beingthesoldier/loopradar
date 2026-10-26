@@ -53,9 +53,9 @@ export const VISUALS = [
   },
   {
     id: 'metro', title: 'Metro', category: 'graphic', preset: 'metro',
-    line: 'The loop as a transit map',
-    about: 'A transit map of the loop. The ring is the loop line and the clock; every melody note is a station on it, and the notes used most run their own lines out of town. Micro trams leave each station as its note plays, and the piano below plays along. Best with the melody as a MIDI.',
-    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'paper', style: 'clean', trams: 0.5, labels: 'few' } },
+    line: 'A night metro that runs on the melody',
+    about: 'A metro at night that runs on the melody. Every note is a line with its own train: it waits at its stop, pulls out and arrives at the next one exactly on the note, leaving a trail of light. The camera follows the trains and jumps on the kick; the arrivals board and the piano play along. Best with the melody as a MIDI.',
+    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'night', camera: 0.6, punch: 0.5, trails: 0.6 } },
     hide: [],
     posterAt: 4.2
   }
