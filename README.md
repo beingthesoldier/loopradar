@@ -17,13 +17,13 @@ Open http://localhost:8000. Stop the server with `Ctrl+C`. (macOS has `python3` 
 ## Structure
 
 ```
-index.html                 gallery: header, categories, grid, preview + "Try it"
+index.html                 site: header, nav (Home, Presets › categories, About), grid, preview + "Try it"
 assets/css/base.css        shared tokens, type and the header (both pages)
 assets/css/site.css        gallery layout
 assets/css/studio.css      studio layout
 assets/js/header.js        account button in the header
 assets/js/catalog.js       categories and visuals (each visual = preset + starting look)
-assets/js/site.js          gallery logic and routing (#/category/visual)
+assets/js/site.js          site logic and routing (#/, #/presets/<category>/<visual>, #/about)
 assets/posters/            one still per visual, used in the grid
 studio/index.html          studio page (markup only)
 studio/js/main.js          entry: wires the page, opens ?visual=<id>, runs the frame loop
