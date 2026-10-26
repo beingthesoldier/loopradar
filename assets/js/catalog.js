@@ -58,6 +58,22 @@ export const VISUALS = [
     look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'paper', style: 'clean', trams: 0.5, labels: 'few' } },
     hide: [],
     posterAt: 4.2
+  },
+  {
+    id: 'seismo', title: 'Seismograph', category: 'dark', preset: 'seismo',
+    line: 'The beat written by a seismograph',
+    about: 'Three pens on running chart paper: the 808 and kick, the melody, the hats. Every hit is a tremor; a melody note rings faster the higher it is, with its name stamped over the peak.',
+    look: { preset: 'seismo', quant: 16, seismo: { pal: 'carbon', speed: 'normal', gain: 1, notes: 'on' } },
+    hide: [],
+    posterAt: 3.3
+  },
+  {
+    id: 'strings', title: 'Strings', category: 'soft', preset: 'strings',
+    line: 'Every hit plucks a string',
+    about: 'A bass string for the kick and the 808, a string for each note of the melody, a thin one for the hats. Each hit plucks its string; it swings and rings out, slower for long notes.',
+    look: { preset: 'strings', quant: 16, strings: { pal: 'linen', sustain: 1, swing: 1, labels: 'on' } },
+    hide: [],
+    posterAt: 3.15
   }
 ];
 
