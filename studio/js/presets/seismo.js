@@ -6,12 +6,13 @@
 // out from the time alone (hit ages wrap round the section), so the video loops without a seam.
 import { S, segLen, segStart, barDur } from '../state.js';
 import { ctx, W, H, u, cx, spaced, MONO } from '../render/canvas.js';
+import { waveStrip, SAFE_TOP } from '../render/hud.js';
 import { clamp, mod, TAU, pad, fmtT, titleCase } from '../util.js';
 
 const HEL = '"Helvetica Neue", Helvetica, Inter, Arial, sans-serif';
 const PALS = {
   carbon: { bg: '#0d0d0c', paper: '#151513', ink: '#ece7dc', faint: 'rgba(236,231,220,0.07)', mid: 'rgba(236,231,220,0.16)', mute: '#8a857b', red: '#e5482f' },
-  paper:  { bg: '#e7e1d4', paper: '#f2ede2', ink: '#1b1a18', faint: 'rgba(27,26,24,0.07)', mid: 'rgba(27,26,24,0.17)', mute: '#857f74', red: '#c8352a' }
+  paper:  { bg: '#e4e4e1', paper: '#f6f6f4', ink: '#1a1a19', faint: 'rgba(26,26,25,0.07)', mid: 'rgba(26,26,25,0.16)', mute: '#858580', red: '#c8352a' }
 };
 const SPEEDS = { slow: 0.3, normal: 0.45, fast: 0.7 };   // paper speed, frame widths a second
 // how each pen rings after a hit: frequency (Hz), decay (s), height (share of the row)
@@ -66,7 +67,7 @@ const SEISMO = {
     const P = S.seismo, pal = PALS[P.pal] || PALS.carbon, sl = segLen(), bd = barDur();
     if (!this.by) this.prepare(S.seg || []);
     const v = (SPEEDS[P.speed] || SPEEDS.normal) * W, penX = W * 0.8, x0 = W * 0.06;
-    const top = H * 0.155, bot = H * 0.655, rowH = (bot - top) / 3;
+    const top = H * 0.215, bot = H * 0.6, rowH = (bot - top) / 3;
 
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, H);
@@ -129,23 +130,18 @@ const SEISMO = {
     const mx = W * 0.06;
     const title = titleCase(S.title || ''); let ts = 60 * u; ctx.font = `700 ${ts}px ${HEL}`;
     const tw = ctx.measureText(title).width; if (tw > W - 2 * mx) { ts *= (W - 2 * mx) / tw; ctx.font = `700 ${ts}px ${HEL}`; }
-    ctx.fillStyle = pal.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(title, mx, H * 0.075);
+    ctx.fillStyle = pal.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(title, mx, H * SAFE_TOP);
     ctx.font = `400 ${15 * u}px ${MONO}`; ctx.fillStyle = pal.mute;
-    spaced([`STATION ${(S.tag || '').replace(/^PROD\.?\s*/i, '').toUpperCase() || 'LR'}`, `${+S.bpm.toFixed(2)} BPM`, (S.key || '').toUpperCase()].filter(Boolean).join('   ·   '), mx, H * 0.075 + 34 * u, 2 * u, 'left');
+    spaced([`STATION ${(S.tag || '').replace(/^PROD\.?\s*/i, '').toUpperCase() || 'LR'}`, `${+S.bpm.toFixed(2)} BPM`, (S.key || '').toUpperCase()].filter(Boolean).join('   ·   '), mx, H * SAFE_TOP + 34 * u, 2 * u, 'left');
 
     // readouts under the paper: magnitude from the loudness, the strongest swing this bar, time
-    const yR = bot + 82 * u, mag = 1 + 8 * (F ? F.rmsN : 0);
+    const yR = bot + 60 * u, mag = 1 + 8 * (F ? F.rmsN : 0);
     let hits = 0; for (const k of ['low', 'mid', 'high']) for (const h of this.by[k]) if (mod(tau - h.rt, sl) < bd) hits++;
     ctx.font = `400 ${14 * u}px ${MONO}`; ctx.fillStyle = pal.mute; ctx.textAlign = 'left';
     spaced('MAGNITUDE', mx, yR, 2.5 * u, 'left'); spaced('TREMORS, LAST BAR', W * 0.42, yR, 2.5 * u, 'left');
     ctx.font = `700 ${62 * u}px ${HEL}`; ctx.fillStyle = pal.ink;
     ctx.fillText(mag.toFixed(1), mx, yR + 64 * u); ctx.fillText(String(hits), W * 0.42, yR + 64 * u);
-    ctx.fillStyle = pal.red; ctx.fillRect(mx, yR + 84 * u, (W - 2 * mx) * clamp((mag - 1) / 8, 0, 1), 3 * u);
-    ctx.fillStyle = pal.faint; ctx.fillRect(mx, yR + 84 * u, W - 2 * mx, 3 * u);
-    const bar = S.startBar + Math.floor(tau / bd) + 1, beat = Math.floor(mod(tau, bd) / (bd / 4)) + 1;
-    ctx.font = `400 ${15 * u}px ${MONO}`; ctx.fillStyle = pal.mute;
-    spaced(fmtT(tau), mx, yR + 122 * u, 1.5 * u, 'left');
-    spaced(`BAR ${pad(bar, 2)}.${beat} / ${pad(S.startBar + S.lenBars, 2)}`, W - mx, yR + 122 * u, 1.5 * u, 'right');
+    waveStrip(tau, { x: mx, y: yR + 100 * u, w: W - 2 * mx, ink: pal.ink, dim: pal.mid, mute: pal.mute, head: pal.red });
   }
 };
 
