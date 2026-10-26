@@ -8,9 +8,9 @@ import { pickOnsets, rebuild } from '../audio/hits.js';
 import { restartIfPlaying } from '../audio/transport.js';
 
 const CTRL_INPUTS = { title: 'title', tag: 'tag', key: 'key', bpm: 'bpm', offset: 'offset', lead: 'lead', lenNum: 'lenBars', sens: 'sens' };
-const CTRL_SEGS = { len: 'lenBars', quant: 'quant', res: 'res', loops: 'loops' };
+const CTRL_SEGS = { len: 'lenBars', quant: 'quant', res: 'res', loops: 'loops', fps: 'fps' };
 export const LOOK_KEYS = ['preset', 'quant', 'sens', ...PRESET_IDS];
-const ALL_KEYS = LOOK_KEYS.concat(['title', 'tag', 'key', 'bpm', 'offset', 'lenBars', 'res', 'loops', 'lead']);
+const ALL_KEYS = LOOK_KEYS.concat(['title', 'tag', 'key', 'bpm', 'offset', 'lenBars', 'res', 'loops', 'fps', 'lead']);
 
 export const snap = keys => { const o = {}; for (const k of keys) o[k] = JSON.parse(JSON.stringify(S[k])); return o; };
 // settings saved before presets had their own section kept the radar's at the top level
