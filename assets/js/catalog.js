@@ -54,8 +54,8 @@ export const VISUALS = [
   {
     id: 'metro', title: 'Metro', category: 'graphic', preset: 'metro',
     line: 'A night metro that runs on the melody',
-    about: 'A metro at night that runs on the melody. Every note is a line with its own train: it waits at its stop, pulls out and arrives at the next one exactly on the note, leaving a trail of light. The camera follows the trains and jumps on the kick; the arrivals board and the piano play along. Best with the melody as a MIDI.',
-    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'night', camera: 0.6, punch: 0.5, trails: 0.6 } },
+    about: 'A metro at night that runs on the melody. Every note is a line with its own train: it waits at its stop, pulls out and arrives at the next one exactly on the note, drawing a fine line down its track. The camera glides over the city after the trains; the arrivals board and the piano play along. Best with the melody as a MIDI.',
+    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'night', camera: 0.6, trails: 0.5 } },
     hide: [],
     posterAt: 4.2
   }
