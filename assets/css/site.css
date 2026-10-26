@@ -1,12 +1,30 @@
-/* Gallery: a column of categories on the left, the work on the right. Tokens and header live in base.css. */
+/* Site: navigation on the left (Home, Presets with its categories, About), the page on the right. Tokens and header live in base.css. */
 .site{display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:var(--gap);padding-block:40px 80px}
 
 .side{position:sticky;top:calc(var(--hdr) + 40px);align-self:start;display:flex;flex-direction:column;gap:28px}
-.cats{display:flex;flex-direction:column;gap:6px}
-.cats a{color:var(--mute);transition:color .2s;display:flex;gap:6px;align-items:baseline;width:max-content}
-.cats a:hover,.cats a[aria-current="page"]{color:var(--fg)}
-.cats sup{font-size:9px;color:var(--mute);font-variant-numeric:tabular-nums}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav a{color:var(--mute);transition:color .2s;display:flex;gap:6px;align-items:baseline;width:max-content}
+.nav a:hover,.nav a[aria-current="page"]{color:var(--fg)}
+.nav sup{font-size:9px;color:var(--mute);font-variant-numeric:tabular-nums}
+.folder{display:flex;flex-direction:column;gap:6px}
+.nav[data-sec="presets"] #navPresets{color:var(--fg)}
+/* the categories sit inside Presets like files in a folder */
+.sub{display:flex;flex-direction:column;gap:6px;margin:2px 0 4px 1px;padding-left:14px;border-left:1px solid var(--line)}
 .cat-note{margin:0;color:var(--mute);max-width:26ch}
+
+/* Home and About: mostly white space */
+.page{display:flex;flex-direction:column;gap:22px;max-width:60ch;padding-top:8px}
+.page.in{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.lead{margin:0;font-size:clamp(26px,3.2vw,40px);font-weight:400;line-height:1.12;letter-spacing:-.01em;max-width:18ch;text-wrap:balance}
+.intro{margin:0;color:var(--ink2);max-width:46ch;text-wrap:pretty}
+.steps{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.steps li{display:flex;gap:28px;padding:12px 0;border-bottom:1px solid var(--line)}
+.steps span{color:var(--mute);font-variant-numeric:tabular-nums}
+.home .try{align-self:flex-start;margin-top:6px}
+.facts{margin:8px 0 0;display:grid;grid-template-columns:140px minmax(0,1fr);border-top:1px solid var(--line)}
+.facts dt,.facts dd{margin:0;padding:14px 0;border-bottom:1px solid var(--line)}
+.facts dt{color:var(--mute)}
+.facts dd{color:var(--ink2);text-wrap:pretty}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:48px 28px;align-content:start}
 .card{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -38,7 +56,13 @@
 @media (max-width:760px){
   .site{grid-template-columns:minmax(0,1fr);padding-block:20px 60px;gap:24px}
   .side{position:static;gap:10px}
-  .cats{flex-direction:row;flex-wrap:wrap;gap:6px 18px}
+  .nav{flex-direction:row;flex-wrap:wrap;gap:8px 20px}
+  .folder{display:contents}
+  .sub{order:3;flex-basis:100%;flex-direction:row;flex-wrap:wrap;gap:6px 18px;margin:4px 0 0;padding:10px 0 0;border-left:0;border-top:1px solid var(--line)}
+  .nav:not([data-sec="presets"]) .sub{display:none}
+  .facts{grid-template-columns:minmax(0,1fr)}
+  .facts dt{padding-bottom:0;border-bottom:0}
+  .facts dd{padding-top:6px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 16px}
   .screen{height:auto;width:100%;min-height:0}
 }

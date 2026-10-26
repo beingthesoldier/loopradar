@@ -2,33 +2,49 @@ import { CATEGORIES, VISUALS, findVisual } from './catalog.js';
 
 const $ = id => document.getElementById(id);
 const poster = v => `assets/posters/${v.id}.jpg`;
-const catName = id => id === 'all' ? 'All' : (CATEGORIES.find(c => c.id === id) || {}).name || 'All';
+const isCat = id => CATEGORIES.some(c => c.id === id);
+const catName = id => (CATEGORIES.find(c => c.id === id) || {}).name || 'All presets';
+// links inside Presets: #/presets, #/presets/<category>, #/presets/<visual>, #/presets/<category>/<visual>
+const presetsHref = (cat, v) => '#/presets' + (cat !== 'all' ? '/' + cat : '') + (v ? '/' + v.id : '');
 
-// routes: #/all, #/<category>, #/<category>/<visual>
+// routes: #/ home, #/about, #/presets/…  (links from before Presets existed, #/all, #/dark/radar, still work)
 function parseRoute() {
-  const [cat = 'all', vid = ''] = location.hash.replace(/^#\/?/, '').split('/');
-  const known = cat === 'all' || CATEGORIES.some(c => c.id === cat);
-  return { cat: known ? cat : 'all', visual: vid ? findVisual(vid) : null };
+  let parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (parts[0] === 'all' || isCat(parts[0])) {
+    parts = ['presets', ...(parts[0] === 'all' ? parts.slice(1) : parts)];
+    history.replaceState(null, '', '#/' + parts.join('/'));
+  }
+  const [page = 'home', a = '', b = ''] = parts;
+  if (page === 'about') return { page: 'about' };
+  if (page !== 'presets') return { page: 'home' };
+  if (isCat(a)) return { page: 'presets', cat: a, visual: b ? findVisual(b) : null };
+  return { page: 'presets', cat: 'all', visual: a ? findVisual(a) : null };
 }
 
-function renderCats(active) {
-  const nav = $('cats'); nav.textContent = '';
-  const items = [{ id: 'all', name: 'All', n: VISUALS.length }, ...CATEGORIES.map(c => ({ ...c, n: VISUALS.filter(v => v.category === c.id).length }))];
-  for (const c of items) {
-    const a = document.createElement('a'); a.href = `#/${c.id}`; a.textContent = c.name;
-    const sup = document.createElement('sup'); sup.textContent = c.n; a.appendChild(sup);
-    if (c.id === active) a.setAttribute('aria-current', 'page');
-    nav.appendChild(a);
+function renderNav(r) {
+  const box = $('cats'); box.textContent = '';
+  for (const c of CATEGORIES) {
+    const a = document.createElement('a'); a.href = presetsHref(c.id); a.textContent = c.name;
+    const sup = document.createElement('sup'); sup.textContent = VISUALS.filter(v => v.category === c.id).length; a.appendChild(sup);
+    if (r.page === 'presets' && r.cat === c.id) a.setAttribute('aria-current', 'page');
+    box.appendChild(a);
   }
-  const cat = CATEGORIES.find(c => c.id === active);
-  $('catNote').textContent = cat ? cat.note : 'Every visual reacts to the track: the kick, the 808, the melody, the hats.';
+  $('navCount').textContent = VISUALS.length;
+  const cur = (el, on) => on ? el.setAttribute('aria-current', 'page') : el.removeAttribute('aria-current');
+  cur($('navHome'), r.page === 'home');
+  cur($('navAbout'), r.page === 'about');
+  cur($('navPresets'), r.page === 'presets' && r.cat === 'all');
+  $('nav').dataset.sec = r.page;
+  const cat = CATEGORIES.find(c => c.id === r.cat);
+  $('catNote').hidden = r.page !== 'presets';
+  $('catNote').textContent = cat ? cat.note : 'Every preset reacts to the track: the kick, the 808, the melody, the hats.';
 }
 
 function renderGrid(cat) {
   const grid = $('grid'); grid.textContent = '';
   const list = VISUALS.filter(v => cat === 'all' || v.category === cat);
   list.forEach((v, i) => {
-    const a = document.createElement('a'); a.className = 'card in'; a.href = `#/${cat}/${v.id}`; a.style.setProperty('--i', i);
+    const a = document.createElement('a'); a.className = 'card in'; a.href = presetsHref(cat, v); a.style.setProperty('--i', i);
     const th = document.createElement('div'); th.className = 'thumb';
     const img = document.createElement('img'); img.src = poster(v); img.alt = v.title; img.loading = 'lazy'; img.decoding = 'async';
     img.onerror = () => { img.remove(); };
@@ -43,12 +59,12 @@ function renderDetail(cat, v) {
   const list = VISUALS.filter(x => cat === 'all' || x.category === cat);
   const i = Math.max(0, list.findIndex(x => x.id === v.id));
   const prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length];
-  $('back').href = `#/${cat}`; $('back').textContent = `← ${catName(cat)}`;
+  $('back').href = presetsHref(cat); $('back').textContent = `← ${catName(cat)}`;
   $('detailTitle').textContent = v.title;
   $('detailMeta').textContent = catName(v.category);
   $('detailAbout').textContent = v.about;
   $('tryIt').href = `studio/?visual=${encodeURIComponent(v.id)}`;
-  $('prev').href = `#/${cat}/${prev.id}`; $('next').href = `#/${cat}/${next.id}`;
+  $('prev').href = presetsHref(cat, prev); $('next').href = presetsHref(cat, next);
   const img = $('detailPoster'); img.src = poster(v); img.alt = v.title;
   const fr = $('preview'); fr.classList.remove('live');
   const src = `studio/?visual=${encodeURIComponent(v.id)}&embed=1`;
@@ -59,21 +75,20 @@ function renderDetail(cat, v) {
   } else fr.classList.add('live');
 }
 
+const SECTIONS = ['home', 'about', 'grid', 'detail'];
+function show(id) {
+  for (const s of SECTIONS) $(s).hidden = s !== id;
+  const el = $(id); el.classList.remove('in'); void el.offsetWidth; el.classList.add('in');
+  if (id !== 'detail') { const fr = $('preview'); fr.src = 'about:blank'; fr.dataset.src = ''; }
+}
+
 function route() {
-  const { cat, visual } = parseRoute();
-  renderCats(cat);
-  const detail = $('detail'), grid = $('grid');
-  if (visual) {
-    grid.hidden = true; detail.hidden = false;
-    detail.classList.remove('in'); void detail.offsetWidth; detail.classList.add('in');
-    renderDetail(cat, visual);
-    document.title = `${visual.title} · Loop Radar`;
-  } else {
-    detail.hidden = true; grid.hidden = false;
-    const fr = $('preview'); fr.src = 'about:blank'; fr.dataset.src = '';
-    renderGrid(cat);
-    document.title = cat === 'all' ? 'Loop Radar' : `${catName(cat)} · Loop Radar`;
-  }
+  const r = parseRoute();
+  renderNav(r);
+  if (r.page === 'home') { show('home'); document.title = 'Loop Radar'; }
+  else if (r.page === 'about') { show('about'); document.title = 'About · Loop Radar'; }
+  else if (r.visual) { show('detail'); renderDetail(r.cat, r.visual); document.title = `${r.visual.title} · Loop Radar`; }
+  else { show('grid'); renderGrid(r.cat); document.title = r.cat === 'all' ? 'Presets · Loop Radar' : `${catName(r.cat)} · Loop Radar`; }
   window.scrollTo(0, 0);
 }
 
@@ -84,5 +99,4 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') location.hash = $('prev').getAttribute('href');
   if (e.key === 'Escape') location.hash = $('back').getAttribute('href');
 });
-if (!location.hash) history.replaceState(null, '', '#/all');
 route();

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Loop Radar</title>
-<meta name="description" content="Generative visuals for beats and loops. Pick a visual, try it on your own track, export a vertical video.">
+<meta name="description" content="Generative visuals for beats and loops. Pick a preset, try it on your own track, export a vertical video that loops.">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/site.css">
 </head>
 <body>
 <header class="hdr">
-  <a class="logo" href="#/all">Loop Radar</a>
+  <a class="logo" href="#/">Loop Radar</a>
   <div class="acct">
     <button class="acct-btn" type="button" aria-label="Account" aria-expanded="false" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg></button>
     <div class="acct-menu" hidden><strong>Account</strong><span>Sign in is coming soon.</span></div>
@@ -19,15 +19,49 @@
 
 <div class="site wrap">
   <aside class="side">
-    <nav class="cats" id="cats" aria-label="Categories"></nav>
+    <nav class="nav" id="nav" aria-label="Site">
+      <a href="#/" id="navHome">Home</a>
+      <div class="folder">
+        <a href="#/presets" id="navPresets">Presets<sup id="navCount"></sup></a>
+        <div class="sub" id="cats"></div>
+      </div>
+      <a href="#/about" id="navAbout">About</a>
+    </nav>
     <p class="cat-note" id="catNote"></p>
   </aside>
 
   <main class="main">
-    <section class="grid" id="grid" aria-live="polite"></section>
+    <section class="page home" id="home" hidden>
+      <h1 class="lead">Visuals for beats and loops.</h1>
+      <p class="intro">Pick a preset, drop in your beat, export a vertical video that loops. Every preset moves with the track: the kick, the 808, the melody, the hats.</p>
+      <ol class="steps">
+        <li><span>01</span>Pick a preset</li>
+        <li><span>02</span>Drop in your beat</li>
+        <li><span>03</span>Export a 9:16 video</li>
+      </ol>
+      <a class="try" href="#/presets">Browse presets</a>
+    </section>
+
+    <section class="page about" id="about" hidden>
+      <h1 class="lead">About</h1>
+      <dl class="facts">
+        <dt>What it is</dt>
+        <dd>Loop Radar turns a beat into a short vertical video that loops. Each preset is its own visual system; its colours and details are settings inside it.</dd>
+        <dt>How it works</dt>
+        <dd>The studio listens to your track: it finds the kick and the 808, the melody and the hats, and the pitch of each note, and the preset draws every hit. You pick the section, any number of bars. Everything moves in whole cycles of that section, so the video loops without a seam.</dd>
+        <dt>Your beat</dt>
+        <dd>The track is analysed and the video is made right in your browser. Nothing is uploaded.</dd>
+        <dt>Export</dt>
+        <dd>MP4 (H.264 and AAC), 9:16, 720p or 1080p, 30 or 60 fps. The section once, or repeated up to three times. That's the format Reels, TikTok and Shorts take.</dd>
+        <dt>Browser</dt>
+        <dd>A recent Chrome or Safari on a computer.</dd>
+      </dl>
+    </section>
+
+    <section class="grid" id="grid" aria-live="polite" hidden></section>
 
     <section class="detail" id="detail" hidden>
-      <a class="back" id="back" href="#/all">← All</a>
+      <a class="back" id="back" href="#/presets">← All presets</a>
       <div class="viewer">
         <div class="screen" id="screen">
           <img id="detailPoster" alt="">
@@ -38,7 +72,7 @@
           <p class="meta" id="detailMeta"></p>
           <p class="about" id="detailAbout"></p>
           <a class="try" id="tryIt" href="studio/">Try it</a>
-          <nav class="step" aria-label="More visuals">
+          <nav class="step" aria-label="More presets">
             <a id="prev" href="#">← Previous</a>
             <a id="next" href="#">Next →</a>
           </nav>
