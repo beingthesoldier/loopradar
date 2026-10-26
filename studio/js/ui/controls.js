@@ -40,9 +40,11 @@ export function wireControls() {
   $('offset').addEventListener('change', e => { S.offset = clamp(+e.target.value || 0, -500, 500); e.target.value = S.offset; rebuild(); restartIfPlaying(); });
   $('lead').addEventListener('change', e => { S.lead = clamp(+e.target.value || 0, -300, 300); e.target.value = S.lead; });
   $('play').addEventListener('click', () => S.playing ? pause() : play());
+  $('rewind').addEventListener('click', () => { if (S.playing) { pause(); S.tau = 0; play(); } else S.tau = 0; });
   $('rec').addEventListener('click', onExportClick);
   document.addEventListener('keydown', e => {
     if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); S.playing ? pause() : play(); }
+    if (e.code === 'Home' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $('rewind').click(); }
   });
 }
 
