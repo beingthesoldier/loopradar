@@ -3,6 +3,7 @@ import { S, barDur, segStart, segLen } from '../state.js';
 import { $, clamp, mod } from '../util.js';
 import { pitchAt, noteName } from './analysis.js';
 import { current } from '../presets/index.js';
+import { midiHits } from './midi.js';
 
 /* hits: three bands, three layers (808/kick, melody, hats/perc) */
 function pickBand(f, type, gap, out) {
@@ -53,6 +54,9 @@ export function rebuild() {
     else S.seg.push(hit);
   }
   if (q) S.seg = [...slots.values()].sort((a, b) => a.rt - b.rt);
+  // with a MIDI loaded, its notes are the melody: they replace what the audio analysis guessed for it
+  const mh = midiHits(ss, sl, A.frameRate);
+  if (mh) S.seg = S.seg.filter(o => o.type !== 'mid').concat(mh).sort((a, b) => a.rt - b.rt);
   const p = current(); if (p && p.prepare) p.prepare(S.seg);
   buildWave();
 }

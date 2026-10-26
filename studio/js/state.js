@@ -8,6 +8,7 @@ export const S = {
   title: 'DIGITAL HEAVEN', tag: 'PROD. ANX', key: 'G MIN', bpm: 134, offset: 0,
   startBar: 4, lenBars: 8, sens: 0.55, quant: 16,
   res: 1080, loops: 1, lead: 100, fps: 30,
+  midi: null,   // a loaded melody MIDI (audio/midi.js), or null: the melody is guessed from the audio
   playing: false, recording: false, exporting: false, t0: 0, tau: 0, recT0: 0, recTotal: 0,
   frame: 0
 };

@@ -33,9 +33,12 @@ export async function loadArrayBuffer(ab, name) {
     console.error(e); status("couldn't read this file. Use WAV or MP3", 'err');
   }
 }
-$('file').addEventListener('change', async e => { const f = e.target.files[0]; if (f) loadArrayBuffer(await f.arrayBuffer(), f.name); });
+// a .mid dropped on the beat goes to the MIDI box instead
+const isMidi = f => /\.midi?$/i.test(f.name) || /midi/.test(f.type);
+async function take(f) { if (isMidi(f)) (await import('../ui/midi.js')).loadMidiFile(f); else loadArrayBuffer(await f.arrayBuffer(), f.name); }
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) take(f); });
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', async e => { const f = e.dataTransfer.files[0]; if (f) loadArrayBuffer(await f.arrayBuffer(), f.name); });
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) take(f); });
 
