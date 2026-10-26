@@ -2,13 +2,14 @@
 // the sound is encoded straight from the decoded beat; both go into one MP4 (mp4-muxer, vendored).
 // Nothing here runs in real time: the picture and the sound line up to the sample, no frame is ever dropped,
 // and a heavy preset only makes the export take longer.
-import { S, segStart, segLen, status } from '../state.js';
+import { S, segLen, status } from '../state.js';
 import { $, mod, fmtT } from '../util.js';
 import { cv, W, H } from '../render/canvas.js';
 import { render } from '../render/engine.js';
 import { pause } from '../audio/transport.js';
 import { Muxer, ArrayBufferTarget } from '../vendor/mp4-muxer.mjs';
 import { addAudioEdit } from './mp4edit.js';
+import { sectionAudio, feedAudio, audioSink, measureDelay, checkFile } from './audio.js';
 import { showVideo, setLocked } from './result.js';
 
 // H.264 High/Main/Baseline at level 4.2 (enough for 1080×1920 at 60 fps), then a couple of fallbacks
@@ -42,72 +43,6 @@ export async function probe() {
 const tick = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
 const dequeued = enc => new Promise(r => { if ('ondequeue' in enc) enc.addEventListener('dequeue', r, { once: true }); else setTimeout(r, 4); });
 
-// the section's audio, repeated, at the export's sample rate and in stereo. It runs a little past the
-// last repeat when the frame count rounds up, and that tail is the start of the next repeat, as on a loop.
-async function sectionAudio(sr, seconds) {
-  const n = Math.round(seconds * sr), sl = segLen(), st = segStart(), buf = S.buffer;
-  const oc = new OfflineAudioContext(2, n, sr);
-  const lead = Math.max(0, -st), from = Math.max(0, st), len = Math.min(sl - lead, buf.duration - from);
-  for (let k = 0; k * sl < seconds; k++) {
-    if (len <= 0) break;
-    const src = oc.createBufferSource(); src.buffer = buf; src.connect(oc.destination);
-    src.start(k * sl + lead, from, len);
-  }
-  const out = await oc.startRendering();
-  return [out.getChannelData(0), out.getChannelData(1)];
-}
-
-function feedAudio(enc, [L, R], sr) {
-  for (let s = 0; s < L.length; s += sr) {
-    const m = Math.min(sr, L.length - s), data = new Float32Array(m * 2);
-    data.set(L.subarray(s, s + m), 0); data.set(R.subarray(s, s + m), m);
-    const ad = new AudioData({ format: 'f32-planar', sampleRate: sr, numberOfFrames: m, numberOfChannels: 2, timestamp: Math.round(s * 1e6 / sr), data });
-    enc.encode(ad); ad.close();
-  }
-}
-
-function firstChannel(d) {
-  const m = d.numberOfFrames, x = new Float32Array(m);
-  try { d.copyTo(x, { planeIndex: 0, format: 'f32-planar' }); return x; } catch (e) {}
-  if (d.format === 'f32') { const all = new Float32Array(m * d.numberOfChannels); d.copyTo(all, { planeIndex: 0 }); for (let i = 0; i < m; i++) x[i] = all[i * d.numberOfChannels]; return x; }
-  if (d.format === 's16') { const all = new Int16Array(m * d.numberOfChannels); d.copyTo(all, { planeIndex: 0 }); for (let i = 0; i < m; i++) x[i] = all[i * d.numberOfChannels] / 32768; return x; }
-  return x;
-}
-
-// How many samples the encoder puts in front of the sound (AAC "priming"). Measured rather than assumed,
-// because it differs between encoders: a noise burst goes through this exact encoder and back through the
-// decoder, and the lag of the best match is the delay. 0 when it can't be measured with confidence.
-export async function measureDelay(cfg) {
-  if (!window.AudioDecoder) return 0;
-  const sr = cfg.sampleRate, n = 24576, at = 4096, len = 8192, sig = new Float32Array(n);
-  let seed = 12345;
-  for (let i = 0; i < len; i++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; sig[at + i] = (seed / 4294967296 * 2 - 1) * 0.5 * Math.sin(Math.PI * i / len) ** 2; }
-  const chunks = []; let dcfg = null;
-  try {
-    const enc = new AudioEncoder({
-      output: (ch, meta) => { if (meta && meta.decoderConfig) dcfg = meta.decoderConfig; const b = new Uint8Array(ch.byteLength); ch.copyTo(b); chunks.push({ type: ch.type, timestamp: ch.timestamp, duration: ch.duration || undefined, data: b }); },
-      error: () => {}
-    });
-    enc.configure(cfg); feedAudio(enc, [sig, sig], sr); await enc.flush(); enc.close();
-    if (!chunks.length) return 0;
-    const parts = [];
-    const dec = new AudioDecoder({ output: d => { parts.push(firstChannel(d)); d.close(); }, error: () => {} });
-    dec.configure({ codec: cfg.codec, sampleRate: sr, numberOfChannels: 2, ...(dcfg || {}) });
-    for (const c of chunks) dec.decode(new EncodedAudioChunk(c));
-    await dec.flush(); dec.close();
-    const y = new Float32Array(parts.reduce((s, p) => s + p.length, 0)); let o = 0; for (const p of parts) { y.set(p, o); o += p.length; }
-    let best = -Infinity, lag = 0, es = 0;
-    for (let i = 0; i < len; i++) es += sig[at + i] ** 2;
-    for (let l = 0; l <= 4096; l++) {
-      let s = 0; for (let i = 0; i < len; i++) s += sig[at + i] * (y[at + i + l] || 0);
-      if (s > best) { best = s; lag = l; }
-    }
-    let ey = 0; for (let i = 0; i < len; i++) ey += (y[at + i + lag] || 0) ** 2;
-    const corr = best / Math.sqrt(es * ey || 1);
-    return corr > 0.5 ? lag : 0;
-  } catch (e) { return 0; }
-}
-
 let cancelled = false;
 export const cancelFrames = () => { cancelled = true; };
 
@@ -129,7 +64,7 @@ export async function exportFrames(opts = {}) {
     status('preparing the sound…', 'busy');
     const a = c.audio, acfg = { codec: a.codec, sampleRate: a.sampleRate, numberOfChannels: 2, bitrate: a.bitrate };
     const pcm = await sectionAudio(a.sampleRate, seconds);
-    const delay = opts.delay ?? await measureDelay(acfg);
+    let delay = opts.delay ?? await measureDelay(acfg);
 
     let fail = null;
     const muxer = new Muxer({
@@ -137,7 +72,7 @@ export async function exportFrames(opts = {}) {
       video: { codec: 'avc', width: w, height: h, frameRate: fps },
       audio: { codec: a.kind, sampleRate: a.sampleRate, numberOfChannels: 2 }
     });
-    ae = new AudioEncoder({ output: (ch, meta) => muxer.addAudioChunk(ch, meta), error: e => { fail = e; } });
+    ae = new AudioEncoder({ output: audioSink(muxer, { kind: a.kind, sampleRate: a.sampleRate, channels: 2 }), error: e => { fail = e; } });
     ae.configure(acfg); feedAudio(ae, pcm, a.sampleRate); await ae.flush(); ae.close(); ae = null;
     if (fail) throw fail;
 
@@ -163,18 +98,32 @@ export async function exportFrames(opts = {}) {
     status('finishing the file…', 'busy');
     await ve.flush(); ve.close(); ve = null;
     muxer.finalize();
-    let buf = muxer.target.buffer;
-    if (delay > 0) buf = addAudioEdit(buf, { mediaTime: delay, durationMs: Math.round(seconds * 1000) }) || buf;
+    const raw = muxer.target.buffer, ms = Math.round(seconds * 1000);
+    const withEdit = d => (d > 0 && addAudioEdit(raw, { mediaTime: d, durationMs: ms })) || raw;
+    let buf = withEdit(delay);
 
+    // read the sound back out of the file; if it lands off, move the edit list by what was measured and look again
+    status('checking the sound…', 'busy');
+    let check = await checkFile(buf, pcm[0], a.sampleRate);
+    if (a.kind === 'aac' && opts.delay === undefined && check.lag && Math.abs(check.lag) > 24 && delay + check.lag >= 0) {
+      delay += check.lag; buf = withEdit(delay);
+      check = await checkFile(buf, pcm[0], a.sampleRate);
+    }
     const took = (performance.now() - started) / 1000;
+    const off = check.lag == null ? null : Math.round(check.lag / a.sampleRate * 1000);
+    const sound = !check.readable ? "This browser couldn't read the sound back to check it, so give it a listen before posting."
+      : check.silent ? "The sound didn't make it into the file in this browser. Try exporting in Chrome."
+      : off == null || Math.abs(off) <= 1 ? 'Sound checked: in sync.'
+      : `Sound checked: ${Math.abs(off)} ms ${off > 0 ? 'late' : 'early'}.`;
+    console.info('[export]', { audio: a.kind, sampleRate: a.sampleRate, delay, check, took });
     showVideo(new Blob([buf], { type: 'video/mp4' }), {
       ext: 'mp4', seconds, fps,
       hint: a.kind === 'aac'
-        ? `H.264 + AAC, ready to post. Rendered frame by frame in ${took.toFixed(0)} s.`
-        : "The sound is Opus: this browser has no AAC encoder, and Instagram may refuse Opus. Chrome or Safari on a Mac give AAC."
+        ? (check.silent ? sound : `H.264 + AAC, ready to post. ${sound} Rendered frame by frame in ${took.toFixed(0)} s.`)
+        : `${sound} The sound is Opus: this browser has no AAC encoder, and Instagram may refuse Opus. Chrome or Safari on a Mac give AAC.`
     });
-    status('video ready', 'ok');
-    return { frames, seconds, delay, took, bytes: buf.byteLength, audio: a.kind };
+    status(check.silent ? 'video ready, but without sound' : 'video ready', check.silent ? 'err' : 'ok');
+    return { frames, seconds, delay, check, took, bytes: buf.byteLength, audio: a.kind };
   } catch (e) {
     console.error(e);
     status(`export failed: ${(e && e.message) || e}`, 'err');
