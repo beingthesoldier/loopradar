@@ -5,8 +5,10 @@ import radar from './radar.js';
 import veil from './veil.js';
 import bloom from './bloom.js';
 import metro from './metro.js';
+import seismo from './seismo.js';
+import strings from './strings.js';
 
-export const PRESETS = { radar, veil, bloom, metro };
+export const PRESETS = { radar, veil, bloom, metro, seismo, strings };
 export const PRESET_IDS = Object.keys(PRESETS);
 
 // every preset's settings live in S[<id>], starting from its defaults
