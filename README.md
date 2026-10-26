@@ -67,3 +67,7 @@ The audio analysis finds the kicks and the hats well, but its guess at the melod
 - A short pattern (FL Studio: piano roll → File → Export as MIDI file) can repeat through the song: "Place it → repeat every N bars". It's chosen automatically for files of up to 16 bars.
 - Tracks named like drums (kick, snare, hat, 808, bass…) or on MIDI channel 10 start switched off; any track can be switched on or off.
 - Parser and placement: `studio/js/audio/midi.js`; the box in the studio: `studio/js/ui/midi.js`.
+
+## Accounts
+
+Sign-in, Free / Paid presets and synced looks run on Supabase. Setup steps: [docs/accounts.md](docs/accounts.md).
