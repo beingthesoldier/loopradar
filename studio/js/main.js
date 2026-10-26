@@ -22,7 +22,7 @@ function useVisual(v, embed) {
   const pid = v.look.preset;
   if (embed) {
     S.embed = true; document.body.classList.add('embed');
-    applyAll({ res: 720, title: 'DIGITAL HEAVEN', tag: 'PROD. ANX', key: 'G MIN', lenBars: 8, ...v.look });
+    applyAll({ res: 720, title: v.title.toUpperCase(), tag: 'PROD. ANX', key: 'G MIN', lenBars: 8, startBar: 0, ...v.look });
     return;
   }
   S.visual = v; S.hide = v.hide || [];
@@ -33,6 +33,9 @@ function useVisual(v, embed) {
     const fixed = Object.fromEntries(S.hide.map(k => [k, (v.look[pid] || {})[k]]));
     applyAll({ ...mine, preset: pid, [pid]: { ...(mine[pid] || {}), ...fixed } });
   }
+  // the title starts as the visual's own name, unless the viewer has typed one of their own
+  const stock = ['', 'DIGITAL HEAVEN', ...VISUALS.map(x => x.title.toUpperCase())];
+  if (stock.includes((S.title || '').trim().toUpperCase())) { S.title = v.title.toUpperCase(); $('title').value = S.title; saveSoon(); }
   const cat = (CATEGORIES.find(c => c.id === v.category) || {}).name;
   $('vTitle').textContent = v.title; $('vAbout').textContent = v.about || '';
   $('vBack').href = `../#/presets/${v.category}`; $('vBack').textContent = `← ${cat || 'All presets'}`;

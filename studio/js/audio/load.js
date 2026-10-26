@@ -3,7 +3,7 @@ import { S, segLen, status } from '../state.js';
 import { $ } from '../util.js';
 import { actx, ensureCtx, pause } from './transport.js';
 import { analyze } from './analysis.js';
-import { pickOnsets, autoSegment, rebuild } from './hits.js';
+import { pickOnsets, rebuild } from './hits.js';
 
 function parseName(name) {
   const base = name.replace(/\.[^.]+$/, ''), toks = base.split(/[\s_\-.,()\[\]]+/).filter(Boolean); let bpm = null, key = null;
@@ -26,8 +26,9 @@ export async function loadArrayBuffer(ab, name) {
     if (pn.bpm) { S.bpm = pn.bpm; $('bpm').value = pn.bpm; }
     if (pn.key) { S.key = pn.key; $('key').value = pn.key; }
     S.A = await analyze(buf);
-    pickOnsets(); autoSegment(); rebuild();
-    S.tau = segLen() * 0.27;
+    // the section starts at bar 1 and the playhead at its beginning ("Auto: busiest part" is a button)
+    S.startBar = 0; pickOnsets(); rebuild();
+    S.tau = 0; S.t0 = performance.now();
     status(`ready · ${buf.duration.toFixed(1)} s · ${S.all.length} hits found`, 'ok');
   } catch (e) {
     console.error(e); status("couldn't read this file. Use WAV or MP3", 'err');

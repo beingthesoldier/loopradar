@@ -17,7 +17,7 @@ export function showVideo(blob, info) {
   $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-export function setLocked(on) { document.querySelectorAll('.rack input, .rack button, #play').forEach(el => { el.disabled = on; }); }
+export function setLocked(on) { document.querySelectorAll('.rack input, .rack button, #play, #rewind').forEach(el => { el.disabled = on; }); }
 
 const dlP = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
 function fileBase() { return ((S.title || 'beat') + '_' + S.preset + '_' + Math.round(S.bpm) + 'bpm').toLowerCase().replace(/[^a-z0-9а-яё_\-]+/gi, '_').replace(/_+/g, '_'); }

@@ -16,7 +16,7 @@ export function ensureCtx() {
 // seconds into the section for the frame being drawn
 export function currentTau() {
   const sl = segLen();
-  if (S.embed) return mod(performance.now() / 1000, sl);
+  if (S.embed) return mod((performance.now() - S.t0) / 1000, sl);   // previews start at the top of the section
   if (S.recording) { const t = actx.currentTime - S.recT0; return t < 0 ? 0 : mod(t, sl); }
   if (S.playing) { const lat = (actx.outputLatency || actx.baseLatency || 0); return mod(actx.currentTime - S.t0 - lat, sl); }
   return S.tau;
@@ -37,4 +37,4 @@ export async function play() {
   startSource(null, when, off); S.t0 = when - off; S.playing = true; $('play').textContent = '❚❚ Pause';
 }
 export function pause() { if (!S.playing) return; S.tau = currentTau(); stopSource(); S.playing = false; $('play').textContent = '▶ Play'; }
-export function restartIfPlaying() { if (S.playing) { pause(); S.tau = 0; play(); } else { S.tau = mod(S.tau, segLen()); } }
+export function restartIfPlaying() { if (S.playing) { pause(); S.tau = 0; play(); } else { S.tau = 0; } }
