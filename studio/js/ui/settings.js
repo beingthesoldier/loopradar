@@ -6,6 +6,7 @@ import { pressIn, buildLook } from './controls.js';
 import { setupCanvas } from '../render/engine.js';
 import { pickOnsets, rebuild } from '../audio/hits.js';
 import { restartIfPlaying } from '../audio/transport.js';
+import { onAuth, cloudLooks, cloudSaveLook, cloudDeleteLook } from '../../../assets/js/auth.js';
 
 const CTRL_INPUTS = { title: 'title', tag: 'tag', key: 'key', bpm: 'bpm', offset: 'offset', lead: 'lead', lenNum: 'lenBars', sens: 'sens' };
 const CTRL_SEGS = { len: 'lenBars', quant: 'quant', res: 'res', loops: 'loops', fps: 'fps' };
@@ -67,7 +68,7 @@ export function renderLooks() {
     const a = document.createElement('button'); a.type = 'button'; a.textContent = lk.name; a.title = 'Apply ' + lk.name;
     a.addEventListener('click', () => { applyAll(lk.data); saveSoon(); $('looksHint').textContent = 'Applied: ' + lk.name; });
     const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.setAttribute('aria-label', 'Delete ' + lk.name);
-    x.addEventListener('click', () => { setLooks(getLooks().filter(q => q.name !== lk.name)); renderLooks(); $('looksHint').textContent = 'Deleted: ' + lk.name; });
+    x.addEventListener('click', () => { setLooks(getLooks().filter(q => q.name !== lk.name)); cloudDeleteLook(lk.name); renderLooks(); $('looksHint').textContent = 'Deleted: ' + lk.name; });
     chip.append(a, x); box.appendChild(chip);
   }
 }
@@ -76,6 +77,8 @@ export function wireSettings() {
   $('lookSave').addEventListener('click', () => {
     const name = ($('lookName').value.trim() || `${S.visual ? S.visual.title : S.preset} ${getLooks().filter(fits).length + 1}`).slice(0, 24);
     const l = getLooks().filter(x => x.name !== name); l.push({ name, data: snap(LOOK_KEYS) });
+    const data = snap(LOOK_KEYS);
+    cloudSaveLook(name, data).then(ok => { if (ok) $('looksHint').textContent = 'Saved to your account: ' + name; });
     if (setLooks(l)) { $('lookName').value = ''; $('looksHint').textContent = 'Saved: ' + name; }
     else $('looksHint').textContent = "Couldn't save: this browser blocks page storage (private window?).";
     renderLooks();
@@ -89,4 +92,19 @@ export function restoreAtBoot() {
   }
   let stored = null; try { stored = JSON.parse(localStorage.getItem('lr.settings') || 'null'); } catch (e) {}
   if (stored) applySnap(stored);
+}
+
+// signed in: the account's looks join this browser's (the account's version wins a name both have),
+// and looks only this browser had go up to the account
+export function syncLooks() {
+  let seen = null;
+  onAuth(async st => {
+    const id = st.user && st.user.id; if (!id || id === seen) return; seen = id;
+    const cloud = await cloudLooks(); if (!cloud) return;
+    const local = getLooks(), names = new Set(cloud.map(c => c.name));
+    for (const l of local) if (!names.has(l.name)) cloudSaveLook(l.name, l.data);
+    setLooks([...local.filter(l => !names.has(l.name)), ...cloud.map(c => ({ name: c.name, data: c.data }))]);
+    renderLooks();
+    if ($('looksHint')) $('looksHint').textContent = 'Looks are synced with your account.';
+  });
 }

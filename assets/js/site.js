@@ -1,4 +1,5 @@
 import { CATEGORIES, VISUALS, findVisual } from './catalog.js';
+import { renderAccount } from './account.js';
 
 const $ = id => document.getElementById(id);
 const poster = v => `assets/posters/${v.id}.jpg`;
@@ -16,6 +17,7 @@ function parseRoute() {
   }
   const [page = 'home', a = '', b = ''] = parts;
   if (page === 'about') return { page: 'about' };
+  if (page === 'account') return { page: 'account' };
   if (page !== 'presets') return { page: 'home' };
   if (isCat(a)) return { page: 'presets', cat: a, visual: b ? findVisual(b) : null };
   return { page: 'presets', cat: 'all', visual: a ? findVisual(a) : null };
@@ -50,6 +52,8 @@ function renderGrid(cat) {
     img.onerror = () => { img.remove(); };
     th.appendChild(img);
     const t = document.createElement('span'); t.className = 't'; t.textContent = v.title;
+    const tag = document.createElement('i'); tag.className = 'tag ' + (v.access || 'paid'); tag.textContent = v.access === 'free' ? 'Free' : 'Paid';
+    t.appendChild(tag);
     const s = document.createElement('span'); s.className = 's'; s.textContent = v.line || '';
     a.append(th, t, s); grid.appendChild(a);
   });
@@ -61,7 +65,7 @@ function renderDetail(cat, v) {
   const prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length];
   $('back').href = presetsHref(cat); $('back').textContent = `← ${catName(cat)}`;
   $('detailTitle').textContent = v.title;
-  $('detailMeta').textContent = catName(v.category);
+  $('detailMeta').textContent = `${catName(v.category)} · ${v.access === 'free' ? 'Free' : 'Paid'}`;
   $('detailAbout').textContent = v.about;
   $('tryIt').href = `studio/index.html?visual=${encodeURIComponent(v.id)}`;
   $('prev').href = presetsHref(cat, prev); $('next').href = presetsHref(cat, next);
@@ -75,7 +79,7 @@ function renderDetail(cat, v) {
   } else fr.classList.add('live');
 }
 
-const SECTIONS = ['home', 'about', 'grid', 'detail'];
+const SECTIONS = ['home', 'about', 'account', 'grid', 'detail'];
 function show(id) {
   for (const s of SECTIONS) $(s).hidden = s !== id;
   const el = $(id); el.classList.remove('in'); void el.offsetWidth; el.classList.add('in');
@@ -87,6 +91,7 @@ function route() {
   renderNav(r);
   if (r.page === 'home') { show('home'); document.title = 'Loop Radar'; }
   else if (r.page === 'about') { show('about'); document.title = 'About · Loop Radar'; }
+  else if (r.page === 'account') { show('account'); renderAccount($('account')); document.title = 'Account · Loop Radar'; }
   else if (r.visual) { show('detail'); renderDetail(r.cat, r.visual); document.title = `${r.visual.title} · Loop Radar`; }
   else { show('grid'); renderGrid(r.cat); document.title = r.cat === 'all' ? 'Presets · Loop Radar' : `${catName(r.cat)} · Loop Radar`; }
   window.scrollTo(0, 0);

@@ -106,3 +106,7 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));margin:0 auto;backgroun
   .stage{position:static;order:-1}
   .frame,.transport{width:min(100%, 440px)}
 }
+
+/* export of a paid preset without full access */
+.btn.rec.locked{background:var(--bg);color:var(--fg);border:1px solid var(--fg)}
+.btn.rec.locked::before{background:var(--mute)}
