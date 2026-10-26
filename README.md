@@ -17,19 +17,28 @@ Open http://localhost:8000. Stop the server with `Ctrl+C`. (macOS has `python3` 
 ## Structure
 
 ```
-index.html              gallery: header, categories, grid, preview + "Try it"
-assets/css/base.css     shared tokens, type and the header (both pages)
-assets/css/site.css     gallery layout
-assets/css/studio.css   studio layout
-assets/js/header.js     account button in the header
-assets/js/catalog.js    categories and visuals (each visual = preset + starting look)
-assets/js/site.js       gallery logic and routing (#/category/visual)
-assets/posters/         one still per visual, used in the grid
-studio/index.html       the studio for one visual: its settings, your beat, export
-studio/demo.mp3         demo beat the studio and previews use
-tools/make-posters.mjs  re-renders the posters from the studio
+index.html                 gallery: header, categories, grid, preview + "Try it"
+assets/css/base.css        shared tokens, type and the header (both pages)
+assets/css/site.css        gallery layout
+assets/css/studio.css      studio layout
+assets/js/header.js        account button in the header
+assets/js/catalog.js       categories and visuals (each visual = preset + starting look)
+assets/js/site.js          gallery logic and routing (#/category/visual)
+assets/posters/            one still per visual, used in the grid
+studio/index.html          studio page (markup only)
+studio/js/main.js          entry: wires the page, opens ?visual=<id>, runs the frame loop
+studio/js/state.js         shared state and section timing
+studio/js/util.js          small helpers
+studio/js/audio/           analysis (FFT, bands, hits, pitch), hits in the section, playback, loading a beat
+studio/js/render/          the frame (canvas.js) and drawing the current preset (engine.js)
+studio/js/presets/         one file per preset + index.js (the list)
+studio/js/ui/              settings panel built from each preset's controls, saved settings and looks
+studio/js/export/          video recording
+studio/demo.mp3            demo beat the studio and previews use
+tools/make-posters.mjs     re-renders the posters from the studio
+docs/presets.md            how to write a preset
 ```
-The studio still lives in one file; splitting it into modules (analysis, each preset, export, UI) is the next step.
+New presets: see [docs/presets.md](docs/presets.md).
 
 ## Add a visual
 

@@ -19,6 +19,7 @@
 .grp{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line);padding-top:16px}
 .grp h2{margin:0;font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .grp h2 span{display:none}
+#lookControls{display:flex;flex-direction:column;gap:14px}
 .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .f{display:flex;flex-direction:column;gap:6px;min-width:0}
 .f > label,.lbl{font-size:12px;color:var(--mute);display:flex;justify-content:space-between;gap:8px}
