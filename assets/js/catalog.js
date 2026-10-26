@@ -54,8 +54,8 @@ export const VISUALS = [
   {
     id: 'metro', title: 'Metro', category: 'graphic', preset: 'metro',
     line: 'The loop as a transit map',
-    about: 'A transit map of the loop. Every note the melody uses is a line, the ring in the middle is the clock, every kick an interchange. Micro trams leave each station as its note plays, and the piano below keeps the key.',
-    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'paper', style: 'clean', trams: 0.6, labels: 'all' } },
+    about: 'A transit map of the loop. The ring is the loop line and the clock; every melody note is a station on it, and the notes used most run their own lines out of town. Micro trams leave each station as its note plays, and the piano below plays along. Best with the melody as a MIDI.',
+    look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'paper', style: 'clean', trams: 0.5, labels: 'few' } },
     hide: [],
     posterAt: 4.2
   }

@@ -58,3 +58,12 @@ AAC encoders put a few dozen milliseconds of silence ("priming") in front of the
 Safari 26's AAC encoder hands out a broken decoder description ([WebKit bug 302253](https://bugs.webkit.org/show_bug.cgi?id=302253)), and an MP4 built from it is silent. So `export/audio.js` writes the AAC description itself, strips ADTS headers if an encoder adds them, and fills in missing chunk durations.
 
 Browsers that can't encode video (no `VideoEncoder`) fall back to real-time recording of the preview, which needs the tab in front and the audio-offset nudge. Where there's no AAC encoder (Linux Chromium, Firefox) the sound is Opus, which Instagram may refuse.
+
+## Melody MIDI
+
+The audio analysis finds the kicks and the hats well, but its guess at the melody also picks up snares, hats and the 808. Drop the melody as a `.mid` under the beat and its notes replace that guess in every preset, with exact pitch, velocity and length (kicks and hats still come from the audio). Without a MIDI everything works as before.
+
+- Beat 1 of the MIDI is bar 1 of the track (the grid offset), at the studio's BPM. A whole-song export from the same FL project lines up with the audio.
+- A short pattern (FL Studio: piano roll → File → Export as MIDI file) can repeat through the song: "Place it → repeat every N bars". It's chosen automatically for files of up to 16 bars.
+- Tracks named like drums (kick, snare, hat, 808, bass…) or on MIDI channel 10 start switched off; any track can be switched on or off.
+- Parser and placement: `studio/js/audio/midi.js`; the box in the studio: `studio/js/ui/midi.js`.

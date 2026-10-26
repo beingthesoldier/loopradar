@@ -13,6 +13,7 @@ import { setupExport } from './export/index.js';
 import { exportFrames } from './export/frames.js';
 import { measureDelay } from './export/audio.js';
 import { wireControls } from './ui/controls.js';
+import { wireMidi } from './ui/midi.js';
 import { applyAll, restoreAtBoot, syncUI, renderLooks, wireSettings, saveSoon, loadVisualSettings } from './ui/settings.js';
 import { findVisual, VISUALS, CATEGORIES } from '../../assets/js/catalog.js';
 
@@ -53,7 +54,7 @@ function loop() {
 }
 
 /* ---------------- boot ---------------- */
-wireControls(); wireSettings();
+wireControls(); wireSettings(); wireMidi();
 
 restoreAtBoot();
 setupCanvas(); syncUI(); rebuild(); renderLooks();
@@ -74,4 +75,4 @@ fontsReady
   .catch(() => { status('drop a beat on the left', 'ok'); $('fileName').textContent = 'no file chosen'; });
 
 // for the poster tool and quick checks in the console
-window.__LR = { S, render, setTau: t => { S.tau = t; }, useVisual, PRESETS, saveSoon, exportFrames, measureDelay };
+window.__LR = { S, render, setTau: t => { S.tau = t; }, useVisual, PRESETS, saveSoon, exportFrames, measureDelay, VIS: findVisual };

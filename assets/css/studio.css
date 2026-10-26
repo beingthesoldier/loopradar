@@ -58,6 +58,9 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:0;border-radiu
 .drop strong{font-weight:400;overflow-wrap:anywhere}
 .drop small{color:var(--mute);font-size:12px}
 .drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.drop.midi{padding:12px 16px}
+.drop.midi.on{border-style:solid}
+.midibox{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
 
 .hint{color:var(--mute);font-size:12px;margin:0;line-height:1.5}
 .inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
