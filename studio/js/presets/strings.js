@@ -6,6 +6,7 @@
 // Melody notes come from a MIDI when one is loaded, otherwise from the audio analysis.
 import { S, segLen, barDur } from '../state.js';
 import { ctx, W, H, u, cx, spaced, MONO } from '../render/canvas.js';
+import { waveStrip, SAFE_TOP } from '../render/hud.js';
 import { clamp, mod, TAU, hsh, pad, fmtT, titleCase } from '../util.js';
 
 const HEL = '"Helvetica Neue", Helvetica, Inter, Arial, sans-serif';
@@ -55,7 +56,7 @@ const STRINGS = {
     const P = S.strings, pal = PALS[P.pal] || PALS.linen, sl = segLen(), bd = barDur();
     if (!this.strings) this.prepare(S.seg || []);
     const strs = this.strings, n = strs.length;
-    const y0 = H * 0.17, y1 = H * 0.71, L = y1 - y0, xL = W * 0.13, xR = W * 0.87, gap = (xR - xL) / Math.max(1, n - 1);
+    const y0 = H * 0.215, y1 = H * 0.63, L = y1 - y0, xL = W * 0.13, xR = W * 0.87, gap = (xR - xL) / Math.max(1, n - 1);
     const maxA = gap * 0.42 * P.swing, segs = 90;
 
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
@@ -116,17 +117,10 @@ const STRINGS = {
     const mx = W * 0.075;
     const title = titleCase(S.title || ''); let ts = 60 * u; ctx.font = `700 ${ts}px ${HEL}`;
     const tw = ctx.measureText(title).width; if (tw > W - 2 * mx) { ts *= (W - 2 * mx) / tw; ctx.font = `700 ${ts}px ${HEL}`; }
-    ctx.fillStyle = pal.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(title, mx, H * 0.075);
+    ctx.fillStyle = pal.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(title, mx, H * SAFE_TOP);
     ctx.font = `400 ${15 * u}px ${MONO}`; ctx.fillStyle = pal.mute;
-    spaced([(S.tag || '').toUpperCase(), `${+S.bpm.toFixed(2)} BPM`, (S.key || '').toUpperCase()].filter(Boolean).join('   ·   '), mx, H * 0.075 + 34 * u, 2 * u, 'left');
-    const yF = y1 + 110 * u, prog = tau / sl;
-    ctx.fillStyle = pal.rest; ctx.fillRect(mx, yF, W - 2 * mx, 2 * u);
-    ctx.fillStyle = pal.ink; ctx.fillRect(mx, yF - 0.5 * u, (W - 2 * mx) * prog, 3 * u);
-    ctx.fillStyle = pal.accent; ctx.beginPath(); ctx.arc(mx + (W - 2 * mx) * prog, yF + 1 * u, 5.5 * u, 0, TAU); ctx.fill();
-    const bar = S.startBar + Math.floor(tau / bd) + 1, beat = Math.floor(mod(tau, bd) / (bd / 4)) + 1;
-    ctx.font = `400 ${15 * u}px ${MONO}`; ctx.fillStyle = pal.mute;
-    spaced(fmtT(tau), mx, yF + 34 * u, 1.5 * u, 'left');
-    spaced(`BAR ${pad(bar, 2)}.${beat} / ${pad(S.startBar + S.lenBars, 2)}`, W - mx, yF + 34 * u, 1.5 * u, 'right');
+    spaced([(S.tag || '').toUpperCase(), `${+S.bpm.toFixed(2)} BPM`, (S.key || '').toUpperCase()].filter(Boolean).join('   ·   '), mx, H * SAFE_TOP + 34 * u, 2 * u, 'left');
+    waveStrip(tau, { x: mx, y: y1 + 84 * u, w: W - 2 * mx, ink: pal.ink, dim: pal.rest, mute: pal.mute, head: pal.accent });
   }
 };
 
