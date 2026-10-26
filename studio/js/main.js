@@ -39,7 +39,7 @@ function useVisual(v, embed) {
   const cat = (CATEGORIES.find(c => c.id === v.category) || {}).name;
   $('vTitle').textContent = v.title; $('vAbout').textContent = v.about || '';
   $('vBack').href = `../#/presets/${v.category}`; $('vBack').textContent = `← ${cat || 'All presets'}`;
-  document.title = `${v.title} · Loop Radar`;
+  document.title = `${v.title} · kristudio`;
   renderLooks();
 }
 

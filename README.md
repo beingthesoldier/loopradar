@@ -1,4 +1,4 @@
-# Loop Radar
+# kristudio
 
 Generative visuals for beats and loops. A gallery of visuals (left: categories, right: the work), a live preview of each one, and a studio where you drop your own beat and export a vertical video.
 

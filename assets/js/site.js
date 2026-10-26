@@ -89,11 +89,11 @@ function show(id) {
 function route() {
   const r = parseRoute();
   renderNav(r);
-  if (r.page === 'home') { show('home'); document.title = 'Loop Radar'; }
-  else if (r.page === 'about') { show('about'); document.title = 'About · Loop Radar'; }
-  else if (r.page === 'account') { show('account'); renderAccount($('account')); document.title = 'Account · Loop Radar'; }
-  else if (r.visual) { show('detail'); renderDetail(r.cat, r.visual); document.title = `${r.visual.title} · Loop Radar`; }
-  else { show('grid'); renderGrid(r.cat); document.title = r.cat === 'all' ? 'Presets · Loop Radar' : `${catName(r.cat)} · Loop Radar`; }
+  if (r.page === 'home') { show('home'); document.title = 'kristudio'; }
+  else if (r.page === 'about') { show('about'); document.title = 'About · kristudio'; }
+  else if (r.page === 'account') { show('account'); renderAccount($('account')); document.title = 'Account · kristudio'; }
+  else if (r.visual) { show('detail'); renderDetail(r.cat, r.visual); document.title = `${r.visual.title} · kristudio`; }
+  else { show('grid'); renderGrid(r.cat); document.title = r.cat === 'all' ? 'Presets · kristudio' : `${catName(r.cat)} · kristudio`; }
   window.scrollTo(0, 0);
 }
 
