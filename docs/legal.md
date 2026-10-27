@@ -13,7 +13,7 @@ The site footer (home, presets, about, account, studio) carries the seller's nam
 
 ## Seller details
 
-Filled in on every legal page and in the footer: name, INN, city (Vladivostok), e-mail (help@kristudio.tech),
+Filled in on every legal page and in the footer: name, INN, city (Vladivostok), e-mail (mom3ntofsilence@gmail.com),
 phone, price (499 ₽ per 30 days). The e-mail must actually receive mail before the site goes to Robokassa.
 
 ## Open points (not solved by the documents)
