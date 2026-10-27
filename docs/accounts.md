@@ -1,6 +1,6 @@
 # Accounts (Supabase)
 
-Sign-in is by a link sent to the visitor's email (no passwords). Each account has an access level,
+Sign-in is by a 6-digit code sent to the visitor's email (no passwords). A code works in any browser, Instagram's included; a link would only work in the browser that asked for it. Each account has an access level,
 `free` or `paid`. Every preset can be tried by anyone; exporting a preset marked **Paid** in
 `assets/js/catalog.js` (`access: 'paid'`) needs an account with `paid` access. Saved looks sync to the
 account when signed in.
@@ -44,3 +44,24 @@ They see it after reloading the page. This is also how to test the paid side.
   That's fine for now; real protection would mean rendering or watermarking on a server.
 - Payments aren't connected yet. When they are, a server function (Supabase Edge Function) receives
   the payment provider's confirmation, writes a row to `purchases` and sets `profiles.access = 'paid'`.
+
+## Codes instead of links (one-time setup)
+
+The site asks for the code from the email. For the email to carry a code, its template must use `{{ .Token }}`,
+and on a free project the templates can only be edited once a custom SMTP sender is set.
+
+1. **SMTP** (Authentication → Emails → SMTP Settings → enable custom SMTP). With a Gmail account:
+   turn on 2-Step Verification in the Google account, create an App password, then
+   host `smtp.gmail.com`, port `465`, username = the Gmail address, password = the app password,
+   sender email = the Gmail address, sender name `kristudio`.
+2. **Templates** (Authentication → Emails → Templates). Both **Confirm signup** (first sign-in) and **Magic link** (later ones):
+   - Subject: `Your kristudio code: {{ .Token }}`
+   - Body:
+     ```html
+     <p>Your code for kristudio:</p>
+     <p style="font-size:28px;letter-spacing:6px;font-family:monospace">{{ .Token }}</p>
+     <p>Type it on the page where you asked for it. It works once and expires in an hour.</p>
+     ```
+3. **Rate limit** (Authentication → Rate Limits): emails per hour, raise from the default if needed.
+
+Until step 2 is done the emails still carry a link; it signs in only in the browser that asked for it.

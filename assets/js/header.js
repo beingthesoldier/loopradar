@@ -1,7 +1,7 @@
-// The account button in the header (gallery and studio): signed out, a field for the email to send a
-// sign-in link to; signed in, who you are, your access, the account page and signing out.
-import { configured, initAuth, onAuth, sendLink, signOut } from './auth.js';
-import { consentBox } from './consent.js';
+// The account button in the header (gallery and studio): signed out, the sign-in form (email, then the code
+// from the email); signed in, who you are, your access, the account page and signing out.
+import { configured, initAuth, onAuth, signOut } from './auth.js';
+import { signinForm } from './signin.js';
 
 const btn = document.querySelector('.acct-btn'), menu = document.querySelector('.acct-menu');
 const logo = document.querySelector('.logo');
@@ -16,17 +16,7 @@ function render(st) {
   if (!configured()) { menu.appendChild(el('span', {}, 'Sign in is coming soon.')); return; }
   if (!st.ready) { menu.appendChild(el('span', {}, 'Loading…')); return; }
   if (!st.user) {
-    const form = el('form', { class: 'acct-form' });
-    const input = el('input', { type: 'email', required: '', placeholder: 'you@email.com', 'aria-label': 'Email', autocomplete: 'email' });
-    const go = el('button', { type: 'submit', class: 'acct-go' }, 'Send sign-in link');
-    const note = el('span', { class: 'acct-note' }, 'No password: we email you a link.');
-    form.append(input, consentBox(rootHref), go, note);
-    form.addEventListener('submit', async e => {
-      e.preventDefault(); go.disabled = true; note.textContent = 'Sending…';
-      try { await sendLink(input.value.trim()); note.textContent = 'Check your inbox and open the link in this browser.'; }
-      catch (err) { note.textContent = err.message || 'Could not send the link.'; go.disabled = false; }
-    });
-    menu.appendChild(form);
+    menu.appendChild(signinForm({ base: rootHref, look: { form: 'acct-form', button: 'acct-go', note: 'acct-note' } }));
     return;
   }
   menu.appendChild(el('span', { class: 'acct-email' }, st.user.email || ''));
@@ -40,7 +30,8 @@ function render(st) {
 if (btn && menu) {
   const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
   btn.addEventListener('click', e => { e.stopPropagation(); const open = menu.hidden; menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); });
-  document.addEventListener('click', e => { if (!menu.contains(e.target) && e.target !== btn) close(); });
+  // composedPath: a button inside the menu that redraws the form is gone from the page by now, but was in the menu
+  document.addEventListener('click', e => { const path = e.composedPath(); if (!path.includes(menu) && !path.includes(btn)) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   menu.addEventListener('click', e => { if (e.target.tagName === 'A') close(); });
 }

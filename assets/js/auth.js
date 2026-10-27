@@ -43,12 +43,22 @@ export async function initAuth() {
   });
 }
 
-// the link in the email brings them back to the account page of this site
-export async function sendLink(email) {
+// Signing in is a code sent by email (the same request also makes the account the first time).
+// A code works wherever it's typed: Instagram's browser, another device, a mail app that opens links elsewhere.
+// If the email still carries a link (template not switched yet), the link keeps working in the same browser.
+export async function sendCode(email) {
   const sb = await client(); if (!sb) throw new Error('Accounts are not set up yet.');
   const base = location.origin + location.pathname.replace(/studio\/[^/]*$/, '').replace(/index\.html$/, '');
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: base + '#/account' } });
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: base + '#/account', shouldCreateUser: true } });
   if (error) throw error;
+}
+export const sendLink = sendCode;
+export async function verifyCode(email, token) {
+  const sb = await client(); if (!sb) throw new Error('Accounts are not set up yet.');
+  const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+  if (error) throw error;
+  const user = data && data.user;
+  if (user) emit({ ready: true, user, profile: await loadProfile(sb, user) });
 }
 export async function signOut() { const sb = await client(); if (sb) await sb.auth.signOut(); emit({ user: null, profile: null }); }
 

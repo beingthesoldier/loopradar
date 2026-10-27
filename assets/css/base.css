@@ -48,8 +48,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,label:focus-within{outl
 .acct-menu{min-width:240px}
 .acct-menu a{color:var(--fg);text-decoration:underline;text-underline-offset:3px;width:max-content}
 .acct-form{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.acct-form input[type=email]{font:inherit;border:0;border-bottom:1px solid var(--line);padding:6px 0;background:transparent;color:var(--fg);outline:none}
-.acct-form input[type=email]:focus{border-bottom-color:var(--fg)}
+.acct-form input[type=email],.acct-form input.code{font:inherit;border:0;border-bottom:1px solid var(--line);padding:6px 0;background:transparent;color:var(--fg);outline:none}
+.acct-form input[type=email]:focus,.acct-form input.code:focus{border-bottom-color:var(--fg)}
 .acct-go{font:inherit;background:var(--fg);color:var(--bg);border:0;padding:9px 12px;cursor:pointer}
 .acct-go:disabled{opacity:.5;cursor:default}
 .acct-note{font-size:12px}
@@ -65,3 +65,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,label:focus-within{outl
 .foot{display:flex;flex-wrap:wrap;gap:4px 18px;padding-top:18px;padding-bottom:28px;border-top:1px solid var(--line);font-size:11px;color:var(--mute)}
 .foot a{color:var(--mute)}
 .foot a:hover{color:var(--fg)}
+
+/* the code step of signing in */
+.acct-note{margin:0}
+.acct-form input.code,.signin input.code{letter-spacing:.2em;font-variant-numeric:tabular-nums}
+.again{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+.linkish{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.linkish:disabled{opacity:.4;cursor:default}
