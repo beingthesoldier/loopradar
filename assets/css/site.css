@@ -70,8 +70,10 @@
 
 /* account page */
 .signin{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;max-width:46ch}
-.signin input{flex:1 1 220px;font:inherit;border:0;border-bottom:1px solid var(--line);padding:8px 0;background:transparent;color:var(--fg);outline:none}
-.signin input:focus{border-bottom-color:var(--fg)}
+.signin .consent{flex-basis:100%;order:2}
+.signin .try{order:3}
+.signin input[type=email]{flex:1 1 220px;font:inherit;border:0;border-bottom:1px solid var(--line);padding:8px 0;background:transparent;color:var(--fg);outline:none}
+.signin input[type=email]:focus{border-bottom-color:var(--fg)}
 .try:disabled{opacity:.35;cursor:default}
 button.try{font:inherit;border:0;cursor:pointer}
 .hint-line{margin:0;color:var(--mute)}

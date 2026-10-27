@@ -1,0 +1,20 @@
+/* Legal pages: a plain reading column. Placeholders still to fill are marked .todo so they can't be missed. */
+.doc{max-width:72ch;padding:48px 0 96px;margin:0 auto}
+.doc h1{font-size:clamp(26px,3vw,34px);font-weight:400;letter-spacing:-.01em;line-height:1.15;margin:0 0 8px;text-wrap:balance}
+.doc .ed{color:var(--mute);margin:0 0 40px}
+.doc h2{font-size:15px;font-weight:500;margin:36px 0 10px}
+.doc p,.doc li{color:var(--ink2);line-height:1.6;text-wrap:pretty}
+.doc p{margin:0 0 10px}
+.doc ol,.doc ul{margin:0 0 10px;padding-left:22px}
+.doc li{margin:0 0 6px}
+.doc a{text-decoration:underline;text-underline-offset:2px}
+.doc .req{display:grid;grid-template-columns:200px minmax(0,1fr);border-top:1px solid var(--line);margin:8px 0 24px}
+.doc .req dt,.doc .req dd{margin:0;padding:10px 0;border-bottom:1px solid var(--line)}
+.doc .req dt{color:var(--mute)}
+.doc .req dd{color:var(--fg)}
+.doc .docs{list-style:none;padding:0;border-top:1px solid var(--line)}
+.doc .docs li{margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
+.todo{background:#fff1b8;color:#5a4500;padding:0 3px}
+.back{color:var(--mute);display:inline-block;margin-bottom:28px}
+.back:hover{color:var(--fg)}
+@media (max-width:600px){.doc .req{grid-template-columns:minmax(0,1fr)}.doc .req dt{padding-bottom:0;border-bottom:0}.doc .req dd{padding-top:4px}}
