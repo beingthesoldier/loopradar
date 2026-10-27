@@ -1,10 +1,10 @@
-// COIL: the beat's name, letter after letter, running along a thin line, left to right along the front.
-// Solo and Desk: a spring of three wide rings, seen nearly side-on; the letters come in at the top end and
-// leave at the bottom. Or a figure eight, or a rippled ring. One copy of the name rides in coloured tags at the
-// front and hands them to the next copy as it leaves. Every 808 and kick pushes the letters along for half a
-// second, harder the louder it hits, and gives the spring a short squeeze, like a hit spring; melody notes pop
-// their tags. Desk puts it in a panel next to a piano roll of the melody (best with MIDI) and two readouts.
-// Readable first: few letters, wide spacing, the back of the line small and faint, the front full.
+// COIL: the beat's name, letter after letter, running along a coil of thin line, left to right along the front.
+// The coil (three turns down and back up, so the halves cross like the rings of a spring), a figure eight, or a
+// rippled ring. It breathes slowly between a tight S and wide rings and sways a little. One copy of the name
+// rides in coloured tags and keeps them until it has left the main front line, then hands them on. Every 808
+// and kick pushes the letters along for half a second, harder the louder it hits; melody notes pop their tags.
+// Desk puts it in a panel next to a piano roll of the melody (best with MIDI) and two readouts.
+// Readable first: not too many letters, the front at full strength, the sides and back small and faint.
 // Everything is worked out from the time since each hit, and the flow is balanced so the letters travel a whole
 // number of words per loop, so the video loops without a seam.
 import { S, segLen, segStart, barDur } from '../state.js';
@@ -38,31 +38,31 @@ const sstep = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
 const PUSH = 0.5;   // how long one hit keeps pushing, in seconds
 function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 
-// The paths. t runs along the path (0..turns); q is the squeeze from the last hits (0 at rest, about 1 just after
-// a hard hit, a little below 0 as it springs back). A point in a unit box: y down, z towards the viewer.
-// Along the front (z > 0) every path runs left to right, so the letters read that way.
-// open: the path has two ends (the letters fade in and out there) rather than closing on itself.
-// per: letters on one turn, at least. exit: where on the path the main front line ends (on the right; the tagged
-// word keeps its tags until its first letter has gone past it). depth: how far the
-// front comes towards the viewer, to tell the front arc from the sides; floor: how much the sides keep (the
-// eight is nearly flat, so its sides stay readable).
-// The spring is seen nearly side-on (tilt), and each ring sits well below the last, so the back of a ring
-// passes between two fronts instead of across one.
+// The paths, for t in [0,1) round the loop, at a breathing spread sp (0 tight, 1 wide): a point in a unit box
+// (y down, z towards the viewer), and where it is round its ring: fr (-1 back .. 1 front) and fx (-1 left .. 1 right).
+// Along the front every path runs left to right, so the letters read that way.
+// letters: about how many letters go on the path; rings: how many times it goes round (for the letter size).
+// exit: where the main front line ends, on the right; the tagged word keeps its tags until its first letter has
+// gone past it. floor: how much the sides and back keep (the eight is nearly flat, so its sides stay readable).
 const FORMS = {
-  coil: { turns: 3, open: true, per: 9, tilt: 0.2, exit: 2, depth: 0.84, floor: 0,
-          at: (t, q) => { const R = 0.86 * (1 + 0.05 * q), th = -TAU * t; return [R * Math.cos(th), (t - 1.5) * 0.56 * (1 - 0.22 * q), R * Math.sin(th)]; } },
-  eight: { turns: 1, open: false, per: 16, tilt: 0.42, exit: 0.25, depth: 0.5, floor: 0.55,
-           at: (t, q) => { const a = TAU * t; return [0.76 * Math.sin(a) * (1 + 0.04 * q), 0.62 * Math.sin(2 * a) * (1 - 0.2 * q), 0.55 * Math.cos(a)]; } },
-  wave: { turns: 1, open: false, per: 15, tilt: 0.5, exit: 0.5, depth: 0.74, floor: 0.12,
-          at: (t, q) => { const a = TAU * t, R = 0.84 * (1 + 0.04 * q); return [-R * Math.cos(a), 0.2 * Math.sin(TAU * 4 * t) * (1 - 0.3 * q), R * Math.sin(a)]; } }
+  // three turns down and three back up: the two halves cross like the rings of a spring
+  coil: { letters: 28, rings: 3, exit: 2 / 3, floor: 0,
+          at: (t, sp) => { const R = 0.34 + 0.62 * sp, th = -TAU * 3 * t, sn = Math.sin(th), cs = Math.cos(th); return [R * cs, -Math.cos(TAU * t) * (0.92 - 0.12 * sp), R * sn, sn, cs]; } },
+  // a figure eight that leans into depth
+  eight: { letters: 16, rings: 1, exit: 0.25, floor: 0.55,
+           at: (t, sp) => { const a = TAU * t, R = 0.5 + 0.45 * sp; return [R * Math.sin(a), 0.9 * Math.sin(2 * a) * (0.7 + 0.3 * sp), Math.cos(a) * 0.6, Math.cos(a), Math.sin(a)]; } },
+  // a ring with a wave running round it, like a ripple on the rim of a glass
+  wave: { letters: 15, rings: 1, exit: 0.5, floor: 0.12,
+          at: (t, sp) => { const a = TAU * t, R = 0.55 + 0.4 * sp; return [-R * Math.cos(a), 0.55 * Math.sin(TAU * 4 * t) * (0.45 + 0.55 * sp), R * Math.sin(a), Math.sin(a), -Math.cos(a)]; } }
 };
 
 const COIL = {
   id: 'coil', name: 'Coil',
-  defaults: { view: 'solo', form: 'coil', pal: 'paper', push: 1 },
+  defaults: { view: 'solo', form: 'coil', pal: 'paper', push: 1, breath: 0.6 },
   controls: [
     { key: 'form', label: 'Shape', type: 'choice', options: [['coil', 'coil'], ['eight', 'eight'], ['wave', 'wave']] },
     { key: 'push', label: 'Push from 808 & kick', type: 'range', min: 0, max: 2, step: 0.01, format: v => v.toFixed(2) + '×', then: 'rebuild' },
+    { key: 'breath', label: 'Breathing', type: 'range', min: 0, max: 1, step: 0.01 },
     { key: 'pal', label: 'Colour', type: 'choice', options: [['paper', 'paper'], ['night', 'night'], ['clay', 'clay'], ['frost', 'frost'], ['wine', 'wine']] },
     { key: 'view', label: 'View', type: 'choice', options: [['solo', 'solo'], ['desk', 'desk']] }
   ],
@@ -89,13 +89,13 @@ const COIL = {
     this.pushed = pushed;
   },
 
-  // how many copies of the name go on the path: enough for a calm spacing, always whole copies,
-  // and at least two on the closed shapes so the tags have somewhere to go
+  // how many copies of the name go on the path: about the shape's letter count, always whole copies, at least two
+  // (a long name gets a third, so one copy is about one ring of the coil)
   layout() {
     const raw = (S.title || '').toUpperCase().replace(/\s+/g, '') || 'KRISTUDIO';
     const F0 = FORMS[S.coil.form] || FORMS.coil;
     const word = [...raw].slice(0, 24), L = word.length, sl = segLen();
-    const copies = Math.max(F0.open ? 1 : 2, Math.round(Math.max(F0.per, L) * F0.turns / L)), N = L * copies;
+    const copies = Math.max(2, Math.round(Math.max(F0.letters, 2.6 * L) / L)), N = L * copies;
     const words = Math.max(1, Math.ceil((this.pushed + 0.28 * sl) / L));
     this.word = word; this.wkey = raw + '|' + S.coil.form; this.N = N; this.base = (words * L - this.pushed) / sl;
   },
@@ -104,32 +104,29 @@ const COIL = {
     for (const o of this.lows) off += this.A * o.s * (ease((tau - o.rt) / PUSH) + ease((tau + sl - o.rt) / PUSH));
     return off;
   },
-  // the squeeze: each hit presses the spring in fast, then it rings back out
-  squeeze(tau) {
-    const sl = segLen(); let q = 0;
-    for (const o of this.lows) { const age = mod(tau - o.rt, sl); if (age < 1.2) q += o.s * sstep(age / 0.05) * Math.exp(-age / 0.28) * Math.cos(TAU * age / 0.5); }
-    return clamp(q * Math.min(1.5, S.coil.push), -0.5, 1.1);
-  },
 
   // the shape inside a box: the line, the letters, the tagged copy
   coil(tau, F, bx, by, bw, bh, pal, k) {
-    const sl = segLen(), F0 = FORMS[S.coil.form] || FORMS.coil, form = F0.at, T = F0.turns;
-    const word = this.word, L = word.length, N = this.N, per = N / T, off = this.offset(tau), q = this.squeeze(tau);
+    const P = S.coil, sl = segLen(), F0 = FORMS[P.form] || FORMS.coil, form = F0.at;
+    const word = this.word, L = word.length, N = this.N, per = N, off = this.offset(tau);
+    // breathing: a slow swing between a tight S and wide rings, a whole number of times per loop. The 808 and
+    // kick only nudge it, so the shape doesn't bounce like a ball
+    const cyc = Math.max(1, Math.round(S.lenBars / 4));
+    let swell = 0; for (const o of this.lows) { const age = mod(tau - o.rt, sl); swell += o.s * Math.exp(-age / 0.4) * 0.05; }
+    const sp = clamp(0.5 - 0.5 * P.breath * Math.cos(TAU * cyc * tau / sl) + Math.min(swell, 0.08) * P.breath, 0, 1.1);
     // a slow sway, once per loop, instead of a full turn: calm, and the front stays the front
-    const sway = 0.25 * Math.sin(TAU * tau / sl), cr = Math.cos(sway), sr = Math.sin(sway);
-    const ct = Math.cos(F0.tilt), st = Math.sin(F0.tilt);
+    const sway = 0.35 * Math.sin(TAU * tau / sl), cr = Math.cos(sway), sr = Math.sin(sway);
+    const tilt = 0.42, ct = Math.cos(tilt), st = Math.sin(tilt);
     const sc = Math.min(bw * 0.46, bh * 0.44), ox = bx + bw / 2, oy = by + bh / 2;
     // f: how far round to the front a point is, 0 from the sides back, 1 on the front arc. Only the front reads
-    // at full strength; the sides and the back stay faint, so letters going round a bend don't pile into each other
-    const zr = F0.depth, fl = F0.floor;
+    // at full strength; the sides and the back stay faint, so the crossing halves and the bends don't pile up
+    const fl = F0.floor;
     const proj = t => {
-      const [x0, y, z0] = form(t, q), x = x0 * cr - z0 * sr, z = x0 * sr + z0 * cr;
-      const yy = y * ct + z * st, zz = z * ct - y * st, persp = 1 / (1 - zz * 0.3);
-      return { X: ox + x * sc * persp, Y: oy + yy * sc * 1.05 * persp, z: zz, p: persp, f: fl + (1 - fl) * sstep((zz / zr + 0.05) / 0.75) };
+      const [x0, y, z0, fr, fx] = form(t, sp), x = x0 * cr - z0 * sr, z = x0 * sr + z0 * cr;
+      const yy = y * ct + z * st, zz = z * ct - y * st, persp = 1 / (1 - zz * 0.26);
+      return { X: ox + x * sc * persp, Y: oy + yy * sc * 1.05 * persp, z: zz, p: persp, f: fl + (1 - fl) * sstep((fr * cr + fx * sr + 0.05) / 0.75) };
     };
-    // where letter j is along the path, and how much it shows (an open path fades at its two ends)
-    const tOf = j => mod((j + off) / per, T);
-    const endA = t => F0.open ? sstep(t / 0.35) * sstep((T - t) / 0.35) : 1;
+    const tOf = j => mod((j + off) / per, 1), endA = () => 1;
     // the tagged word: one copy of the name at a time. It keeps its tags until its last letter to go (the first
     // letter of the word) has left the main front line on the right; then the copy right behind it lights up
     // and the old one goes plain. v is how far behind the exit a copy's first letter is: 0..L is the lit copy.
@@ -142,13 +139,13 @@ const COIL = {
     const pops = new Float32Array(L);
     for (const n of this.mids) { const age = mod(tau - n.rt, sl); if (age < 0.6) pops[n.tag % L] = Math.max(pops[n.tag % L], n.s * Math.exp(-age / 0.18)); }
     // long names get smaller letters so they still have room
-    const fk = clamp(11 / per, 0.55, 1);
+    const fk = clamp(11 * F0.rings / N, 0.6, 1);
 
-    // the line between neighbouring letters, broken where the letters sit (none across the gap between the two ends)
+    // the line between neighbouring letters, broken where the letters sit
     const gap = 0.3;
     ctx.lineCap = 'round'; ctx.strokeStyle = pal.line; ctx.lineWidth = 1.8 * u * k;
     for (let j = 0; j < N; j++) {
-      const t0 = tOf(j); if (F0.open && t0 + 1 / per > T) continue;
+      const t0 = tOf(j);
       const a = t0 + gap / per, b = t0 + (1 - gap) / per, vis = endA((a + b) / 2); if (vis < 0.01) continue;
       const pts = []; for (let i = 0; i <= 6; i++) pts.push(proj(a + (b - a) * i / 6));
       ctx.globalAlpha = (0.16 + 0.6 * pts[3].f) * vis;
