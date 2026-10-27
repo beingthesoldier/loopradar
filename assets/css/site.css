@@ -17,10 +17,6 @@
 .page.in{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
 .lead{margin:0;font-size:clamp(26px,3.2vw,40px);font-weight:400;line-height:1.12;letter-spacing:-.01em;max-width:18ch;text-wrap:balance}
 .intro{margin:0;color:var(--ink2);max-width:46ch;text-wrap:pretty}
-.steps{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.steps li{display:flex;gap:28px;padding:12px 0;border-bottom:1px solid var(--line)}
-.steps span{color:var(--mute);font-variant-numeric:tabular-nums}
-.home .try{align-self:flex-start;margin-top:6px}
 .facts{margin:8px 0 0;display:grid;grid-template-columns:140px minmax(0,1fr);border-top:1px solid var(--line)}
 .facts dt,.facts dd{margin:0;padding:14px 0;border-bottom:1px solid var(--line)}
 .facts dt{color:var(--mute)}
@@ -83,3 +79,56 @@ button.try{font:inherit;border:0;cursor:pointer}
 .looklist li{display:flex;gap:14px;align-items:baseline}
 .looklist .mute{color:var(--mute)}
 .looklist .acct-link{margin-left:auto}
+
+/* Home: one live preset beside a big line of type, then every preset in a strip.
+   The headline's top and the buttons' baseline line up with the frame's edges; the rest is air. */
+.page.home{max-width:none;gap:0;padding-top:0}
+.hero{
+  --fh:clamp(440px,calc(100svh - var(--hdr) - 150px),780px);
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:1fr auto auto;
+  grid-template-areas:"h f" "s f" "a f";column-gap:clamp(40px,7vw,128px);
+}
+.hero-h{grid-area:h;align-self:start;margin:-.08em 0 0;font-size:clamp(40px,4.7vw,84px);font-weight:400;line-height:.98;letter-spacing:-.035em}
+.hero-h span{display:block;white-space:nowrap}
+.hero-sub{grid-area:s;margin:0 0 28px;max-width:34ch;font-size:15px;line-height:1.5;color:var(--ink2);text-wrap:pretty}
+.hero-act{grid-area:a;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.more{color:var(--mute);transition:color .2s}
+.more:hover{color:var(--fg)}
+.hero-fig{grid-area:f;margin:0;position:relative;width:calc(var(--fh) * 9 / 16)}
+.frame{position:relative;width:100%;aspect-ratio:9/16;background:var(--tile);overflow:hidden}
+.frame img,.mini-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;opacity:0;transition:opacity .9s ease}
+#cv.on{opacity:1}
+.hero-cap{position:absolute;left:0;right:0;top:calc(100% + 12px);white-space:nowrap;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-variant-numeric:tabular-nums}
+.snd{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--fg);background:none;border:0;padding:10px 0;margin:-10px 0;cursor:pointer}
+.snd[aria-pressed="true"]{text-decoration:underline;text-underline-offset:3px}
+
+.proof{margin-top:clamp(120px,16vh,180px);display:flex;flex-direction:column;gap:20px}
+.proof-h{margin:0;font-size:15px;color:var(--fg)}
+.strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px}
+.mini{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mini-th{position:relative;aspect-ratio:9/16;background:var(--tile);overflow:hidden}
+/* a hairline over the picture, so a white preset (Metro) still has an edge */
+.frame::after,.mini-th::after{content:"";position:absolute;inset:0;border:1px solid rgba(0,0,0,.06);pointer-events:none;z-index:1}
+.mini-t{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--fg)}
+
+@media (max-width:1100px){
+  .strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
+  .strip::-webkit-scrollbar{display:none}
+  .mini{flex:0 0 140px;scroll-snap-align:start}
+}
+@media (max-width:1099px){
+  /* stacked: the line, the button, then the picture, cropped to 4:5 so the button stays on the first screen */
+  .hero{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"h" "s" "a" "f"}
+  .hero-h{font-size:clamp(38px,10.5vw,64px);margin-bottom:18px}
+  .hero-sub{margin-bottom:24px}
+  .hero-fig{width:min(100%,460px);margin-top:40px}
+  .hero-fig .frame{aspect-ratio:4/5}
+}
+@media (max-width:760px){
+  .hero-sub{font-size:15px;max-width:30ch}
+  .hero-fig{margin-top:32px}
+  .proof{margin-top:84px}
+  .mini{flex-basis:128px;scroll-snap-align:center}
+}
+}

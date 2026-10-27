@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "python3 -m http.server 8000",
-    "posters": "node tools/make-posters.mjs"
+    "posters": "node tools/make-posters.mjs",
+    "demo": "node tools/make-demo.mjs"
   },
   "devDependencies": {
     "playwright": "^1.48.0"

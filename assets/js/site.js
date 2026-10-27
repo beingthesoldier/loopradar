@@ -1,5 +1,6 @@
 import { CATEGORIES, VISUALS, findVisual } from './catalog.js';
 import { renderAccount } from './account.js';
+import { enterHome, leaveHome } from './home.js';
 
 const $ = id => document.getElementById(id);
 const poster = v => `assets/posters/${v.id}.jpg`;
@@ -39,6 +40,8 @@ function renderNav(r) {
   $('nav').dataset.sec = r.page;
   const cat = CATEGORIES.find(c => c.id === r.cat);
   $('catNote').hidden = r.page !== 'presets';
+  // the home page keeps the menu to its three places; the categories show once you're in Presets
+  $('cats').hidden = r.page === 'home';
   $('catNote').textContent = cat ? cat.note : 'Every preset reacts to the track: the kick, the 808, the melody, the hats.';
 }
 
@@ -89,7 +92,8 @@ function show(id) {
 function route() {
   const r = parseRoute();
   renderNav(r);
-  if (r.page === 'home') { show('home'); document.title = 'kristudio'; }
+  if (r.page !== 'home') leaveHome();
+  if (r.page === 'home') { show('home'); enterHome(); document.title = 'kristudio'; }
   else if (r.page === 'about') { show('about'); document.title = 'About · kristudio'; }
   else if (r.page === 'account') { show('account'); renderAccount($('account')); document.title = 'Account · kristudio'; }
   else if (r.visual) { show('detail'); renderDetail(r.cat, r.visual); document.title = `${r.visual.title} · kristudio`; }
