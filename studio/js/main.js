@@ -14,6 +14,7 @@ import { exportFrames } from './export/frames.js';
 import { measureDelay } from './export/audio.js';
 import { wireControls } from './ui/controls.js';
 import { wireMidi } from './ui/midi.js';
+import { wireGate } from './ui/gate.js';
 import { applyAll, restoreAtBoot, syncUI, renderLooks, wireSettings, saveSoon, loadVisualSettings, syncLooks } from './ui/settings.js';
 import { findVisual, VISUALS, CATEGORIES } from '../../assets/js/catalog.js';
 
@@ -65,7 +66,7 @@ setupCanvas(); syncUI(); rebuild(); renderLooks();
 const q = new URLSearchParams(location.search);
 useVisual(findVisual(q.get('visual') || '') || VISUALS[0], q.get('embed') === '1');
 requestAnimationFrame(loop);
-if (!S.embed) { setupExport(); syncLooks(); }
+if (!S.embed) { setupExport(); syncLooks(); wireGate(); }
 
 const fontsReady = document.fonts ? Promise.all([
   document.fonts.load('400 30px Michroma'), document.fonts.load('500 20px "IBM Plex Mono"'), document.fonts.load('400 20px "IBM Plex Mono"'),

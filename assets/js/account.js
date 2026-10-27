@@ -1,5 +1,5 @@
 // The account page (#/account): sign in, or who you are, your access, your saved looks, signing out.
-import { VISUALS } from './catalog.js';
+import { VISUALS, PRICE } from './catalog.js';
 import { configured, onAuth, sendLink, signOut, cloudLooks, cloudDeleteLook } from './auth.js';
 
 const el = (tag, attrs = {}, text) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text != null) n.textContent = text; return n; };
@@ -20,10 +20,11 @@ function draw(st) {
   if (!st.ready) { box.append(el('p', { class: 'intro' }, 'Loading…')); return; }
 
   if (!st.user) {
-    box.append(el('p', { class: 'intro' }, 'Sign in with your email: we send you a link, no password. The free presets export without an account; the paid ones need full access.'));
+    const free = VISUALS.filter(v => v.access === 'free').map(v => v.title).join(' and ');
+    box.append(el('p', { class: 'intro' }, `One email link, no password: it signs you in, or makes your account if you don't have one yet. ${free} need no account at all; full access, every preset with your own beats and the export, lives here.`));
     const form = el('form', { class: 'signin' });
     const input = el('input', { type: 'email', required: '', placeholder: 'you@email.com', 'aria-label': 'Email', autocomplete: 'email' });
-    const go = el('button', { type: 'submit', class: 'try' }, 'Send sign-in link');
+    const go = el('button', { type: 'submit', class: 'try' }, 'Send the link');
     const note = el('p', { class: 'hint-line' });
     form.append(input, go); box.append(form, note);
     form.addEventListener('submit', async e => {
@@ -37,10 +38,13 @@ function draw(st) {
   const paid = st.profile && st.profile.access === 'paid';
   const dl = el('dl', { class: 'facts' });
   row(dl, 'Email', st.user.email || '');
-  row(dl, 'Access', paid ? 'Full access: every preset exports.' : `Free presets: ${VISUALS.filter(v => v.access === 'free').map(v => v.title).join(', ')}.`);
+  row(dl, 'Access', paid ? 'Full access: every preset, your own beats, the export.' : `Free: ${VISUALS.filter(v => v.access === 'free').map(v => v.title).join(' and ')}, with your own beats and the export.`);
   if (!paid) {
-    const buy = el('button', { type: 'button', class: 'try', disabled: '' }, 'Get full access · soon');
-    row(dl, 'Full access', buy);
+    const wrap = el('div', { class: 'sub-offer' });
+    wrap.append(el('p', {}, `Every preset with your own beats, and the export. ${PRICE}.`));
+    wrap.append(el('button', { type: 'button', class: 'try', disabled: '' }, 'Subscribe · soon'));
+    wrap.append(el('p', { class: 'hint-line' }, 'Payments open soon. Everything else here already works.'));
+    row(dl, 'Full access', wrap);
   }
   const looksDd = row(dl, 'Saved looks', 'Loading…');
   box.append(dl);

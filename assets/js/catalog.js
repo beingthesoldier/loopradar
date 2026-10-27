@@ -4,6 +4,11 @@
 // The gallery reads this list; the studio applies `look` when opened with ?visual=<id>.
 // `access`: 'free' (anyone can export it) or 'paid' (export needs an account with paid access; anyone can try it).
 
+// how access reads on the site, and what full access costs (payments themselves aren't connected yet)
+export const ACCESS_LABEL = { free: 'Free', paid: 'Full access' };
+export const PRICE = '$5 a month';
+export const accessLabel = v => ACCESS_LABEL[v.access === 'free' ? 'free' : 'paid'];
+
 export const CATEGORIES = [
   { id: 'dark', name: 'Dark', note: 'Trap, rage, drill. Hard edges, hits you can see.' },
   { id: 'soft', name: 'Soft', note: 'Dreamcore, ambient, anything fragile.' },

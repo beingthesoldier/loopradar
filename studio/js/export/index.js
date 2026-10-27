@@ -6,6 +6,7 @@ import { $ } from '../util.js';
 import { probe, exportFrames, cancelFrames } from './frames.js';
 import { startRecording } from './recorder.js';
 import { canExport, onAuth, configured } from '../../../assets/js/auth.js';
+import { gate } from '../ui/gate.js';
 
 let mode = 'live', hint = '';
 const label = () => mode === 'frames' ? 'Export video' : 'Record video';
@@ -15,9 +16,9 @@ function lockState() {
   const rec = $('rec'); if (!rec || S.exporting || S.recording) return;
   const locked = !canExport(S.visual);
   rec.classList.toggle('locked', locked);
-  rec.textContent = locked ? 'Unlock to export' : label();
+  rec.textContent = locked ? 'Export with full access' : label();
   $('recHint').textContent = locked
-    ? `${S.visual.title} is a paid preset: play with it as much as you like; exporting it needs full access.` + (configured() ? ' Sign in from the account button, top right.' : ' Accounts are coming soon.')
+    ? `${S.visual.title} comes with full access. Play with it on the demo beat as long as you like; your own beat and the export open with full access.` + (configured() ? '' : ' Accounts are coming soon.')
     : hint;
 }
 export const refreshExportLock = lockState;
@@ -38,6 +39,6 @@ export async function setupExport() {
 
 export function onExportClick() {
   if (S.exporting) { cancelFrames(); return; }
-  if (!canExport(S.visual)) { location.href = '../#/account'; return; }
+  if (!canExport(S.visual)) { gate('export'); return; }
   if (mode === 'frames') exportFrames(); else startRecording();
 }
