@@ -84,8 +84,8 @@ export const VISUALS = [
   {
     id: 'coil', title: 'Coil', category: 'graphic', preset: 'coil', access: 'paid',
     line: 'Your beat\'s name running round a coil',
-    about: "The beat's name, letter after letter, runs along a spring of thin line; one copy rides in coloured tags. Every 808 and kick pushes the letters along for half a second, harder the louder it hits, and squeezes the spring like a hit.",
-    look: { preset: 'coil', quant: 16, coil: { view: 'solo', form: 'coil', pal: 'paper', push: 1 } },
+    about: "The beat's name, letter after letter, runs round a coil of thin line; one copy rides in coloured tags. Every 808 and kick pushes the letters along for half a second, harder the louder it hits, and the coil breathes slowly between a tight S and wide rings.",
+    look: { preset: 'coil', quant: 16, coil: { view: 'solo', form: 'coil', pal: 'paper', push: 1, breath: 0.6 } },
     hide: ['view'],
     posterAt: 4.4
   },
@@ -93,7 +93,7 @@ export const VISUALS = [
     id: 'desk', title: 'Desk', category: 'graphic', preset: 'coil', access: 'paid',
     line: 'Coil, a piano roll and two readouts',
     about: "The coil in a panel next to a piano roll of the melody, a scrolling level and the waveform of the beat. Notes light up as they play; load the melody as MIDI, up to five files, and the roll shows exactly what you wrote, each track in its own colour.",
-    look: { preset: 'coil', quant: 16, coil: { view: 'desk', form: 'coil', pal: 'night', push: 1 } },
+    look: { preset: 'coil', quant: 16, coil: { view: 'desk', form: 'coil', pal: 'night', push: 1, breath: 0.6 } },
     hide: ['view'],
     posterAt: 4.4
   }
