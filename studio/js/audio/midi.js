@@ -76,7 +76,7 @@ export function midiHits(ss, sl, frameRate) {
     for (let k = k0; k <= k1; k++) {
       const beat = o.b0 + k * loop; if (beat < b0 - 1e-6 || beat >= b1 - 1e-6) continue;
       const t = off + beat * spb, p = 440 * 2 ** ((o.n - 69) / 12);
-      out.push({ i: Math.round(t * (frameRate || 100)) + o.n * 7, t, rt: Math.max(0, t - ss), s: 0.25 + 0.75 * o.v / 127, type: 'mid', fc: 0, p, note: noteName(p), mm: o.n, dur: (o.b1 - o.b0) * spb, midi: true });
+      out.push({ i: Math.round(t * (frameRate || 100)) + o.n * 7, t, rt: Math.max(0, t - ss), s: 0.25 + 0.75 * o.v / 127, type: 'mid', fc: 0, p, note: noteName(p), mm: o.n, dur: (o.b1 - o.b0) * spb, midi: true, tr: o.tr });
     }
   }
   return out.sort((a, c) => a.rt - c.rt || a.mm - c.mm);
