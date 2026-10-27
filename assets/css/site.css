@@ -95,8 +95,8 @@ button.try{font:inherit;border:0;cursor:pointer}
   grid-template-areas:"h f ." "s f ." "a f .";column-gap:0;
 }
 .hero-h,.hero-sub,.hero-act{margin-right:var(--cg)}
-/* the headline is sized by the room it has: "lands somewhere." just fills the column */
-.hero-h{grid-area:h;align-self:start;margin-top:-.08em;margin-bottom:0;font-size:clamp(40px,4.7vw,84px);font-size:clamp(40px,calc((100cqi - var(--fw) - var(--air) - var(--cg)) / 7.9),92px);font-weight:400;line-height:.98;letter-spacing:-.035em}
+/* the headline: present, not shouting; it only shrinks further when its column is narrow */
+.hero-h{grid-area:h;align-self:start;margin-top:-.06em;margin-bottom:0;font-size:clamp(36px,3.9vw,64px);font-size:min(clamp(36px,3.9vw,64px),calc((100cqi - var(--fw) - var(--air) - var(--cg)) / 7.9));font-weight:400;line-height:.98;letter-spacing:-.03em}
 .hero-h span{display:block;white-space:nowrap}
 .hero-sub{grid-area:s;margin:0 0 28px;max-width:34ch;font-size:clamp(15px,1.12vw,18px);line-height:1.5;color:var(--ink2);text-wrap:pretty}
 .hero-act{grid-area:a;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
@@ -132,7 +132,7 @@ button.try{font:inherit;border:0;cursor:pointer}
   .page.home{--air:0px}
   .hero{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"h" "s" "a" "f"}
   .hero-h,.hero-sub,.hero-act{margin-right:0}
-  .hero-h{font-size:clamp(38px,10.5vw,64px);margin-bottom:18px}
+  .hero-h{font-size:clamp(32px,9vw,52px);margin-bottom:18px}
   .hero-sub{margin-bottom:24px}
   .hero-fig{width:min(100%,460px);margin-top:40px}
   .hero-fig .frame{aspect-ratio:4/5}
