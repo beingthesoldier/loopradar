@@ -115,7 +115,7 @@ button.try{font:inherit;border:0;cursor:pointer}
 
 .proof{margin-top:clamp(120px,16vh,180px);margin-right:var(--air);display:flex;flex-direction:column;gap:20px}
 .proof-h{margin:0;font-size:15px;color:var(--fg)}
-.strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px}
+.strip{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,1fr));gap:14px}
 .mini{display:flex;flex-direction:column;gap:8px;min-width:0}
 .mini-th{position:relative;aspect-ratio:9/16;background:var(--tile);overflow:hidden}
 /* a hairline over the picture, so a white preset (Metro) still has an edge */
