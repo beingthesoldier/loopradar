@@ -1,6 +1,7 @@
 // The account page (#/account): sign in, or who you are, your access, your saved looks, signing out.
 import { VISUALS, PRICE } from './catalog.js';
 import { configured, onAuth, sendLink, signOut, cloudLooks, cloudDeleteLook } from './auth.js';
+import { consentBox } from './consent.js';
 
 const el = (tag, attrs = {}, text) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text != null) n.textContent = text; return n; };
 const row = (dl, k, v) => { dl.append(el('dt', {}, k)); const dd = el('dd'); if (typeof v === 'string') dd.textContent = v; else dd.append(v); dl.append(dd); return dd; };
@@ -26,7 +27,7 @@ function draw(st) {
     const input = el('input', { type: 'email', required: '', placeholder: 'you@email.com', 'aria-label': 'Email', autocomplete: 'email' });
     const go = el('button', { type: 'submit', class: 'try' }, 'Send the link');
     const note = el('p', { class: 'hint-line' });
-    form.append(input, go); box.append(form, note);
+    form.append(input, consentBox(''), go); box.append(form, note);
     form.addEventListener('submit', async e => {
       e.preventDefault(); go.disabled = true; note.textContent = 'Sending…';
       try { await sendLink(input.value.trim()); note.textContent = 'Check your inbox and open the link in this browser.'; }
