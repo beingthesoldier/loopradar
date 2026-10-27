@@ -7,6 +7,14 @@ account when signed in.
 
 Until `assets/js/config.js` is filled in, the site works as before and the account menu says accounts are coming soon.
 
+## Free and full access
+
+- **Free** presets (Radar, Orb): anyone, with their own beat and the export, no account.
+- **Full access** presets (the rest): anyone can play with them on the demo beat. Bringing your own beat
+  (audio or MIDI) or exporting opens a short note in the studio (`studio/js/ui/gate.js`) that points to
+  the account page, where full access will be a subscription (price in `PRICE`, `assets/js/catalog.js`).
+- Which preset is which: `access` in `assets/js/catalog.js`. On the site it reads "Free" / "Full access".
+
 ## One-time setup
 
 1. **Tables.** Supabase → SQL Editor → New query → paste all of `supabase/schema.sql` → Run.

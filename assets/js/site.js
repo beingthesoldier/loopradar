@@ -1,4 +1,4 @@
-import { CATEGORIES, VISUALS, findVisual } from './catalog.js';
+import { CATEGORIES, VISUALS, findVisual, accessLabel } from './catalog.js';
 import { renderAccount } from './account.js';
 import { enterHome, leaveHome } from './home.js';
 
@@ -38,6 +38,7 @@ function renderNav(r) {
   cur($('navAbout'), r.page === 'about');
   cur($('navPresets'), r.page === 'presets' && r.cat === 'all');
   $('nav').dataset.sec = r.page;
+  document.querySelector('.site').classList.toggle('is-home', r.page === 'home');
   const cat = CATEGORIES.find(c => c.id === r.cat);
   $('catNote').hidden = r.page !== 'presets';
   // the home page keeps the menu to its three places; the categories show once you're in Presets
@@ -55,7 +56,7 @@ function renderGrid(cat) {
     img.onerror = () => { img.remove(); };
     th.appendChild(img);
     const t = document.createElement('span'); t.className = 't'; t.textContent = v.title;
-    const tag = document.createElement('i'); tag.className = 'tag ' + (v.access || 'paid'); tag.textContent = v.access === 'free' ? 'Free' : 'Paid';
+    const tag = document.createElement('i'); tag.className = 'tag ' + (v.access || 'paid'); tag.textContent = accessLabel(v);
     t.appendChild(tag);
     const s = document.createElement('span'); s.className = 's'; s.textContent = v.line || '';
     a.append(th, t, s); grid.appendChild(a);
@@ -68,7 +69,7 @@ function renderDetail(cat, v) {
   const prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length];
   $('back').href = presetsHref(cat); $('back').textContent = `← ${catName(cat)}`;
   $('detailTitle').textContent = v.title;
-  $('detailMeta').textContent = `${catName(v.category)} · ${v.access === 'free' ? 'Free' : 'Paid'}`;
+  $('detailMeta').textContent = `${catName(v.category)} · ${accessLabel(v)}`;
   $('detailAbout').textContent = v.about;
   $('tryIt').href = `studio/index.html?visual=${encodeURIComponent(v.id)}`;
   $('prev').href = presetsHref(cat, prev); $('next').href = presetsHref(cat, next);

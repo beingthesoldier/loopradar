@@ -2,7 +2,7 @@
 // The live picture comes from studio/js/preview.js; it's loaded only when the home page is shown.
 // One canvas does all the drawing: it sits in the hero, and moves into a card in the strip while that
 // card is hovered (or, on touch screens, while it's the one in the middle of the strip).
-import { VISUALS, findVisual } from './catalog.js';
+import { VISUALS, findVisual, accessLabel, PRICE } from './catalog.js';
 
 const $ = id => document.getElementById(id);
 const HERO = 'orb';
@@ -22,10 +22,15 @@ function buildStrip() {
     const img = document.createElement('img'); img.src = `assets/posters/small/${v.id}.jpg`; img.alt = v.title; img.loading = 'lazy'; img.decoding = 'async';
     th.appendChild(img);
     const t = document.createElement('span'); t.className = 'mini-t'; t.textContent = v.title;
-    const tag = document.createElement('i'); tag.className = 'tag ' + (v.access || 'paid'); tag.textContent = v.access === 'free' ? 'Free' : 'Paid';
-    t.appendChild(tag);
+    // only the free ones are marked here; the line under the strip says what the rest are
+    if (v.access === 'free') { const tag = document.createElement('i'); tag.className = 'tag free'; tag.textContent = accessLabel(v); t.appendChild(tag); }
     a.append(th, t); strip.appendChild(a);
   }
+  // how access works, said once and quietly
+  const free = VISUALS.filter(v => v.access === 'free').map(v => v.title), rest = n - free.length;
+  const names = free.length > 1 ? free.slice(0, -1).join(', ') + ' and ' + free[free.length - 1] : free[0];
+  $('accessFree').textContent = `${names} ${free.length > 1 ? 'are' : 'is'} open to everyone: your beat in, a video out. No account.`;
+  $('accessFull').textContent = `The other ${NUM[rest] || rest} open with full access: your own beats and the export, for ${PRICE}.`;
 }
 
 const hero = () => preview && preview.show(findVisual(HERO), $('heroFrame'));

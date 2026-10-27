@@ -68,6 +68,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:0;border-radiu
 .btn:hover{opacity:.7}
 .btn:disabled{opacity:.3;cursor:default}
 .btn.primary{background:var(--fg);color:var(--bg)}
+a.btn{display:inline-block;text-decoration:none}
 .btn.small{padding:7px 12px;font-size:12px}
 .btn.rec{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--fg);color:var(--bg);padding:13px 18px}
 .btn.rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rec)}
@@ -110,3 +111,14 @@ body.embed .frame{width:min(100vw, calc(100vh * 9 / 16));margin:0 auto;backgroun
 /* export of a paid preset without full access */
 .btn.rec.locked{background:var(--bg);color:var(--fg);border:1px solid var(--fg)}
 .btn.rec.locked::before{background:var(--mute)}
+
+/* full access note: a card in the middle of a dimmed page */
+.gate{border:0;padding:0;background:transparent;max-width:min(440px,calc(100vw - 32px));color:var(--fg)}
+.gate::backdrop{background:rgba(255,255,255,.72);backdrop-filter:blur(2px)}
+.gate-card{background:var(--bg);border:1px solid var(--line);padding:28px 28px 24px;display:flex;flex-direction:column;gap:14px}
+.gate-card h2{margin:0;font-size:20px;font-weight:400;line-height:1.25;letter-spacing:-.01em;text-wrap:balance}
+.gate-card p{margin:0;color:var(--ink2);line-height:1.5;text-wrap:pretty}
+.gate-k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)!important}
+.gate-act{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.gate-card .hint a{color:var(--fg);text-decoration:underline;text-underline-offset:2px}
+.gate-hint{margin-top:-4px}

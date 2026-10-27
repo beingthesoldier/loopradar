@@ -82,19 +82,27 @@ button.try{font:inherit;border:0;cursor:pointer}
 
 /* Home: one live preset beside a big line of type, then every preset in a strip.
    The headline's top and the buttons' baseline line up with the frame's edges; the rest is air. */
-.page.home{max-width:none;gap:0;padding-top:0}
-.hero{
-  --fh:clamp(440px,calc(100svh - var(--hdr) - 150px),780px);
-  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:1fr auto auto;
-  grid-template-areas:"h f" "s f" "a f";column-gap:clamp(40px,7vw,128px);
+/* on the home page the menu is three words, so its column shrinks and the page moves left */
+.site.is-home{--side:112px}
+.page.home{max-width:none;gap:0;padding-top:0;container-type:inline-size;
+  --fh:clamp(440px,calc(100svh - var(--hdr) - 150px),780px);   /* frame height */
+  --fw:calc(var(--fh) * 9 / 16);                                /* frame width */
+  --air:clamp(0px,6.5vw,128px);                                 /* the margin right of the frame */
+  --cg:clamp(40px,7vw,128px);                                   /* between the words and the frame */
 }
-.hero-h{grid-area:h;align-self:start;margin:-.08em 0 0;font-size:clamp(40px,4.7vw,84px);font-weight:400;line-height:.98;letter-spacing:-.035em}
+.hero{
+  display:grid;grid-template-columns:minmax(0,1fr) var(--fw) var(--air);grid-template-rows:1fr auto auto;
+  grid-template-areas:"h f ." "s f ." "a f .";column-gap:0;
+}
+.hero-h,.hero-sub,.hero-act{margin-right:var(--cg)}
+/* the headline is sized by the room it has: "lands somewhere." just fills the column */
+.hero-h{grid-area:h;align-self:start;margin-top:-.08em;margin-bottom:0;font-size:clamp(40px,4.7vw,84px);font-size:clamp(40px,calc((100cqi - var(--fw) - var(--air) - var(--cg)) / 7.9),92px);font-weight:400;line-height:.98;letter-spacing:-.035em}
 .hero-h span{display:block;white-space:nowrap}
-.hero-sub{grid-area:s;margin:0 0 28px;max-width:34ch;font-size:15px;line-height:1.5;color:var(--ink2);text-wrap:pretty}
+.hero-sub{grid-area:s;margin:0 0 28px;max-width:34ch;font-size:clamp(15px,1.12vw,18px);line-height:1.5;color:var(--ink2);text-wrap:pretty}
 .hero-act{grid-area:a;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
 .more{color:var(--mute);transition:color .2s}
 .more:hover{color:var(--fg)}
-.hero-fig{grid-area:f;margin:0;position:relative;width:calc(var(--fh) * 9 / 16)}
+.hero-fig{grid-area:f;margin:0;position:relative;width:var(--fw)}
 .frame{position:relative;width:100%;aspect-ratio:9/16;background:var(--tile);overflow:hidden}
 .frame img,.mini-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 #cv{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;opacity:0;transition:opacity .9s ease}
@@ -103,7 +111,7 @@ button.try{font:inherit;border:0;cursor:pointer}
 .snd{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--fg);background:none;border:0;padding:10px 0;margin:-10px 0;cursor:pointer}
 .snd[aria-pressed="true"]{text-decoration:underline;text-underline-offset:3px}
 
-.proof{margin-top:clamp(120px,16vh,180px);display:flex;flex-direction:column;gap:20px}
+.proof{margin-top:clamp(120px,16vh,180px);margin-right:var(--air);display:flex;flex-direction:column;gap:20px}
 .proof-h{margin:0;font-size:15px;color:var(--fg)}
 .strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px}
 .mini{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -111,6 +119,8 @@ button.try{font:inherit;border:0;cursor:pointer}
 /* a hairline over the picture, so a white preset (Metro) still has an edge */
 .frame::after,.mini-th::after{content:"";position:absolute;inset:0;border:1px solid rgba(0,0,0,.06);pointer-events:none;z-index:1}
 .mini-t{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--fg)}
+.access{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 48px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.access p{margin:0;display:flex;flex-direction:column;gap:6px;max-width:46ch;color:var(--ink2);text-wrap:pretty}
 
 @media (max-width:1100px){
   .strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
@@ -119,7 +129,9 @@ button.try{font:inherit;border:0;cursor:pointer}
 }
 @media (max-width:1099px){
   /* stacked: the line, the button, then the picture, cropped to 4:5 so the button stays on the first screen */
+  .page.home{--air:0px}
   .hero{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"h" "s" "a" "f"}
+  .hero-h,.hero-sub,.hero-act{margin-right:0}
   .hero-h{font-size:clamp(38px,10.5vw,64px);margin-bottom:18px}
   .hero-sub{margin-bottom:24px}
   .hero-fig{width:min(100%,460px);margin-top:40px}
@@ -129,6 +141,9 @@ button.try{font:inherit;border:0;cursor:pointer}
   .hero-sub{font-size:15px;max-width:30ch}
   .hero-fig{margin-top:32px}
   .proof{margin-top:84px}
+  .access{grid-template-columns:minmax(0,1fr);gap:18px}
   .mini{flex-basis:128px;scroll-snap-align:center}
 }
 }
+.sub-offer{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.sub-offer p{margin:0}
