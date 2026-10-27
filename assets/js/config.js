@@ -3,5 +3,5 @@
 // Both are meant to be public: what each visitor may read or change is enforced in the database
 // by row-level security (supabase/schema.sql). Never put the secret / service_role key here.
 // Left empty, the site works as before and the account menu says accounts are coming soon.
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_URL = 'https://viiaumpjzeenkdhvrxwp.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_a3cBHfBMmYybUcAutl9uxQ_jEHvfGd8';
