@@ -42,17 +42,18 @@ function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x 
 // a hard hit, a little below 0 as it springs back). A point in a unit box: y down, z towards the viewer.
 // Along the front (z > 0) every path runs left to right, so the letters read that way.
 // open: the path has two ends (the letters fade in and out there) rather than closing on itself.
-// per: letters on one turn, at least. tag: where on the path the tagged copy sits (the front). depth: how far the
+// per: letters on one turn, at least. exit: where on the path the main front line ends (on the right; the tagged
+// word keeps its tags until its first letter has gone past it). depth: how far the
 // front comes towards the viewer, to tell the front arc from the sides; floor: how much the sides keep (the
 // eight is nearly flat, so its sides stay readable).
 // The spring is seen nearly side-on (tilt), and each ring sits well below the last, so the back of a ring
 // passes between two fronts instead of across one.
 const FORMS = {
-  coil: { turns: 3, open: true, per: 9, tilt: 0.2, tag: 1.75, depth: 0.84, floor: 0,
+  coil: { turns: 3, open: true, per: 9, tilt: 0.2, exit: 2, depth: 0.84, floor: 0,
           at: (t, q) => { const R = 0.86 * (1 + 0.05 * q), th = -TAU * t; return [R * Math.cos(th), (t - 1.5) * 0.56 * (1 - 0.22 * q), R * Math.sin(th)]; } },
-  eight: { turns: 1, open: false, per: 16, tilt: 0.42, tag: 0.08, depth: 0.5, floor: 0.55,
+  eight: { turns: 1, open: false, per: 16, tilt: 0.42, exit: 0.25, depth: 0.5, floor: 0.55,
            at: (t, q) => { const a = TAU * t; return [0.76 * Math.sin(a) * (1 + 0.04 * q), 0.62 * Math.sin(2 * a) * (1 - 0.2 * q), 0.55 * Math.cos(a)]; } },
-  wave: { turns: 1, open: false, per: 15, tilt: 0.5, tag: 0.25, depth: 0.74, floor: 0.12,
+  wave: { turns: 1, open: false, per: 15, tilt: 0.5, exit: 0.5, depth: 0.74, floor: 0.12,
           at: (t, q) => { const a = TAU * t, R = 0.84 * (1 + 0.04 * q); return [-R * Math.cos(a), 0.2 * Math.sin(TAU * 4 * t) * (1 - 0.3 * q), R * Math.sin(a)]; } }
 };
 
@@ -129,11 +130,13 @@ const COIL = {
     // where letter j is along the path, and how much it shows (an open path fades at its two ends)
     const tOf = j => mod((j + off) / per, T);
     const endA = t => F0.open ? sstep(t / 0.35) * sstep((T - t) / 0.35) : 1;
-    // the tagged copy: the one whose middle is nearest the tag spot; handed on to the next with a short crossfade
-    const copies = N / L, tagOf = new Float32Array(copies), spot = F0.tag * per, e = 0.3;
+    // the tagged word: one copy of the name at a time. It keeps its tags until its last letter to go (the first
+    // letter of the word) has left the main front line on the right; then the copy right behind it lights up
+    // and the old one goes plain. v is how far behind the exit a copy's first letter is: 0..L is the lit copy.
+    const copies = N / L, tagOf = new Float32Array(copies), exit = F0.exit * per, e = 0.12;
     for (let c = 0; c < copies; c++) {
-      const mid = c * L + (L - 1) / 2 + off, d = Math.abs(mod(mid - spot + N / 2, N) - N / 2);
-      tagOf[c] = sstep((L / 2 + e - d) / (2 * e));
+      const v = mod(exit - (c * L + off) + e, N) - e;
+      tagOf[c] = sstep((v + e) / (2 * e)) * sstep((L + e - v) / (2 * e));
     }
     // which melody note is sounding now, to pop its tag
     const pops = new Float32Array(L);
