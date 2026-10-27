@@ -3,7 +3,7 @@
 import { S, segLen, status } from '../state.js';
 import { $, mod } from '../util.js';
 import { cv } from '../render/canvas.js';
-import { actx, ensureCtx, pause, startSource, stopSource } from '../audio/transport.js';
+import { actx, wake, pause, startSource, stopSource } from '../audio/transport.js';
 import { showVideo, setLocked } from './result.js';
 
 let recorder = null, chunks = [], recMime = '';
@@ -15,7 +15,7 @@ export const canRecord = () => !!(cv.captureStream && window.MediaRecorder);
 export async function startRecording() {
   if (!S.buffer || S.recording) return;
   if (!canRecord()) { status("this browser can't record canvas video. Open the page in Chrome or Safari", 'err'); return; }
-  pause(); ensureCtx(); await actx.resume();
+  pause(); wake(); await actx.resume();
   recMime = pickMime();
   const dest = actx.createMediaStreamDestination();
   const stream = cv.captureStream(60); dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));

@@ -81,6 +81,8 @@ export async function createPreview({ dataUrl, audioUrl, res = 720 }) {
     // created and resumed inside the tap, or Safari keeps it silent
     if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); gain = actx.createGain(); gain.gain.value = 0.9; gain.connect(actx.destination); }
     actx.resume();
+    // one silent sample inside the tap: WebKit lets a context play once something has started in a gesture
+    try { const b = actx.createBuffer(1, 1, actx.sampleRate), s0 = actx.createBufferSource(); s0.buffer = b; s0.connect(actx.destination); s0.start(0); } catch (e) {}
     if (!buffer) {
       loading = loading || fetch(audioUrl).then(r => r.arrayBuffer()).then(ab => new Promise((res, rej) => { const p = actx.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); }));
       emit();
