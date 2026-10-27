@@ -36,10 +36,15 @@ export async function loadArrayBuffer(ab, name) {
 }
 // a .mid dropped on the beat goes to the MIDI box instead
 const isMidi = f => /\.midi?$/i.test(f.name) || /midi/.test(f.type);
-async function take(f) { if (isMidi(f)) (await import('../ui/midi.js')).loadMidiFile(f); else loadArrayBuffer(await f.arrayBuffer(), f.name); }
-$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) take(f); });
+// several at once: the MIDI files go to the MIDI box together, the first audio file is the beat
+async function take(list) {
+  const files = [...list], midis = files.filter(isMidi), audio = files.find(f => !isMidi(f));
+  if (midis.length) (await import('../ui/midi.js')).loadMidiFiles(midis);
+  if (audio) loadArrayBuffer(await audio.arrayBuffer(), audio.name);
+}
+$('file').addEventListener('change', e => { if (e.target.files.length) take(e.target.files); });
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) take(f); });
+drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) take(e.dataTransfer.files); });
 

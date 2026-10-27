@@ -40,21 +40,10 @@
       <label class="drop midi" id="midiDrop" for="midiFile">
         <strong id="midiName">Melody MIDI, optional</strong>
         <small id="midiSub"></small>
-        <input type="file" id="midiFile" accept=".mid,.midi,audio/midi,audio/x-midi">
+        <input type="file" id="midiFile" accept=".mid,.midi,audio/midi,audio/x-midi" multiple>
       </label>
       <div class="midibox" id="midiBox" hidden>
-        <div class="f">
-          <div class="lbl"><span>Melody tracks</span></div>
-          <div class="seg" id="midiTracks"></div>
-        </div>
-        <div class="f">
-          <div class="lbl"><span>Place it</span></div>
-          <div class="seg" id="midiMode">
-            <button type="button" id="midiMode-song" data-v="song" aria-pressed="false">once, from bar 1</button>
-            <button type="button" id="midiMode-loop" data-v="loop" aria-pressed="false">repeat</button>
-          </div>
-        </div>
-        <p class="hint" id="midiInfo"></p>
+        <div class="midifiles" id="midiFiles"></div>
         <button type="button" class="btn small" id="midiClear">Remove MIDI</button>
       </div>
     </section>

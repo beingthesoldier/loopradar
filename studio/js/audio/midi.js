@@ -1,6 +1,8 @@
-// The melody from a MIDI file. When one is loaded, its notes replace the melody the audio analysis guessed
-// (which also picks up hats, snares and the 808), and every preset reads them as its melody hits, with the
-// exact pitch, velocity and length. Kicks and hats still come from the audio.
+// The melody from MIDI files, up to five (the lead, the pads, a counter-melody, each exported on its own).
+// When any are loaded, their notes replace the melody the audio analysis guessed (which also picks up hats,
+// snares and the 808), and every preset reads them as its melody hits, with the exact pitch, velocity and
+// length. Kicks and hats still come from the audio. Every file keeps its own tracks and its own placement
+// (once from bar 1, or repeating), and every track keeps its own on/off.
 //
 // The file's beats are laid on the studio's own grid: beat 0 of the MIDI = bar 1 = the grid offset, at the
 // studio's BPM. So a MIDI exported from the same FL project lines up with the audio. A short pattern
@@ -53,25 +55,52 @@ export function parseMidi(ab) {
   return { ppq, tempo, tracks, notes };
 }
 
-// what the studio keeps about the loaded file
+export const MAX_MIDI = 5;
+const base = name => name.replace(/\.(mid|midi|rmi)$/i, '').replace(/[_]+/g, ' ').trim() || 'MIDI';
+const generic = name => /^(track|untitled|midi|channel)\s*\d*$/i.test(name.trim());
+
+// S.midi = { files: [{ name, tempo, bars, loopBars, mode, tracks, notes }], tracks, notes } or null.
+// tracks and notes are every file's, one after another, so a note's tr indexes S.midi.tracks;
+// each track knows its file (t.file) and has a label for legends (the file's name when it has one melody track).
+function flatten(files) {
+  if (!files.length) { S.midi = null; return null; }
+  const tracks = [], notes = [], many = files.length > 1;
+  files.forEach((f, fi) => {
+    const t0 = tracks.length, used = f.tracks.filter(t => t.count > 0).length;
+    f.tracks.forEach(t => {
+      t.file = fi;
+      t.label = used === 1 ? base(f.name) : many ? `${base(f.name)} · ${generic(t.name) ? t.name.replace(/\D+/g, '') || t.name : t.name}` : t.name;
+      tracks.push(t);
+    });
+    for (const o of f.notes) notes.push({ ...o, tr: t0 + o.tr, f: fi });
+  });
+  S.midi = { files, tracks, notes };
+  return S.midi;
+}
+
+// add one parsed file; a file with the same name replaces the one already there
 export function useMidi(m, name) {
+  const files = S.midi ? S.midi.files.filter(f => f.name !== name) : [];
+  if (files.length >= MAX_MIDI) throw new Error(`up to ${MAX_MIDI} MIDI files: remove one first`);
   const lastBeat = Math.max(...m.notes.map(o => o.b1)), bars = Math.max(1, Math.ceil(lastBeat / 4 - 1e-6));
   let loopBars = 1; while (loopBars < bars) loopBars *= 2;
   const tracks = m.tracks.map(t => ({ ...t, on: t.count > 0 && !t.drums && !DRUMS.test(t.name) }));
   if (!tracks.some(t => t.on)) tracks.forEach(t => { t.on = t.count > 0; });
   const songBars = S.buffer ? (S.buffer.duration - S.offset / 1000) / (240 / S.bpm) : 64;
-  S.midi = { name, ...m, tracks, bars, loopBars, mode: bars <= 16 && songBars > bars * 2 ? 'loop' : 'song' };
-  return S.midi;
+  files.push({ name, tempo: m.tempo, ppq: m.ppq, tracks, notes: m.notes, bars, loopBars, mode: bars <= 16 && songBars > bars * 2 ? 'loop' : 'song' });
+  return flatten(files);
 }
+export const removeMidi = fi => flatten(S.midi ? S.midi.files.filter((f, i) => i !== fi) : []);
 export const clearMidi = () => { S.midi = null; };
 
 // the MIDI's notes inside the section, as hits shaped like the audio's (type 'mid'), or null without a MIDI
 export function midiHits(ss, sl, frameRate) {
   const m = S.midi; if (!m) return null;
-  const spb = 60 / S.bpm, off = S.offset / 1000, loop = m.mode === 'loop' ? m.loopBars * 4 : 0;
+  const spb = 60 / S.bpm, off = S.offset / 1000, loops = m.files.map(f => f.mode === 'loop' ? f.loopBars * 4 : 0);
   const b0 = (ss - off) / spb, b1 = b0 + sl / spb, out = [];
   for (const o of m.notes) {
     if (!m.tracks[o.tr] || !m.tracks[o.tr].on) continue;
+    const loop = loops[o.f] || 0;
     const k0 = loop ? Math.floor((b0 - o.b0) / loop) : 0, k1 = loop ? Math.ceil((b1 - o.b0) / loop) : 0;
     for (let k = k0; k <= k1; k++) {
       const beat = o.b0 + k * loop; if (beat < b0 - 1e-6 || beat >= b1 - 1e-6) continue;
