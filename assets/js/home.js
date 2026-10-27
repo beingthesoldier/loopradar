@@ -15,7 +15,7 @@ let preview = null, started = false, ready = null;
 function buildStrip() {
   const n = VISUALS.length, word = NUM[n] || String(n);
   $('proofH').textContent = `Same beat. ${word[0].toUpperCase() + word.slice(1)} presets.`;
-  const strip = $('strip'); strip.textContent = '';
+  const strip = $('strip'); strip.textContent = ''; strip.style.setProperty('--n', n);
   for (const v of VISUALS) {
     const a = document.createElement('a'); a.className = 'mini'; a.href = href(v); a.dataset.id = v.id;
     const th = document.createElement('div'); th.className = 'mini-th';
