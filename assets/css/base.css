@@ -28,7 +28,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,label:focus-within{outl
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   display:flex;align-items:center;justify-content:space-between;
 }
-.hdr .logo{font-size:13px;letter-spacing:.01em}
+.hdr .logo{display:block;line-height:0}
+.hdr .logo img{display:block;height:20px;width:auto}
 .acct{position:relative}
 .acct-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--fg);display:grid;place-items:center;cursor:pointer;padding:0;transition:border-color .2s}
 .acct-btn:hover,.acct-btn[aria-expanded="true"]{border-color:var(--fg)}
