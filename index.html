@@ -33,14 +33,22 @@
 
   <main class="main">
     <section class="page home" id="home" hidden>
-      <h1 class="lead">Visuals for beats and loops.</h1>
-      <p class="intro">Pick a preset, drop in your beat, export a vertical video that loops. Every preset moves with the track: the kick, the 808, the melody, the hats.</p>
-      <ol class="steps">
-        <li><span>01</span>Pick a preset</li>
-        <li><span>02</span>Drop in your beat</li>
-        <li><span>03</span>Export a 9:16 video</li>
-      </ol>
-      <a class="try" href="#/presets">Browse presets</a>
+      <div class="hero">
+        <h1 class="hero-h"><span>Every hit</span> <span>lands somewhere.</span></h1>
+        <p class="hero-sub">Generative visuals that move with your kick, 808, melody and hats. Exported as a 9:16 loop.</p>
+        <div class="hero-act">
+          <a class="try" href="studio/index.html?visual=orb">Try it with your beat</a>
+          <a class="more" href="#/presets">Browse presets →</a>
+        </div>
+        <figure class="hero-fig">
+          <div class="frame" id="heroFrame"><img src="assets/posters/orb.jpg" alt="Orb: a sphere of points moving with the demo beat" fetchpriority="high"><canvas id="cv" aria-hidden="true"></canvas></div>
+          <figcaption class="hero-cap"><span>Orb · demo beat · 134 BPM</span><button type="button" class="snd" id="heroSound" aria-pressed="false">Sound off</button></figcaption>
+        </figure>
+      </div>
+      <div class="proof">
+        <p class="proof-h" id="proofH">Same beat. Every preset.</p>
+        <div class="strip" id="strip"></div>
+      </div>
     </section>
 
     <section class="page about" id="about" hidden>

@@ -24,9 +24,12 @@ assets/css/studio.css      studio layout
 assets/js/header.js        account button in the header
 assets/js/catalog.js       categories and visuals (each visual = preset + starting look)
 assets/js/site.js          site logic and routing (#/, #/presets/<category>/<visual>, #/about)
-assets/posters/            one still per visual, used in the grid
+assets/js/home.js          home page: the live preset in the hero and the strip of every preset
+assets/posters/            one still per visual, used in the grid (small/: the home page strip)
+assets/demo/demo.json      the demo beat's hits and loudness, so the home page draws a preset without the mp3
 studio/index.html          studio page (markup only)
 studio/js/main.js          entry: wires the page, opens ?visual=<id>, runs the frame loop
+studio/js/preview.js       a live preset for other pages (the home page), drawn from assets/demo/demo.json
 studio/js/state.js         shared state and section timing
 studio/js/util.js          small helpers
 studio/js/audio/           analysis (FFT, bands, hits, pitch), hits in the section, playback, loading a beat
@@ -37,6 +40,7 @@ studio/js/export/          video export: frames.js (frame by frame), audio.js (s
 studio/js/vendor/          mp4-muxer 5.2.2 (MIT), writes the MP4 file
 studio/demo.mp3            demo beat the studio and previews use
 tools/make-posters.mjs     re-renders the posters from the studio
+tools/make-demo.mjs        re-makes assets/demo/demo.json from studio/demo.mp3 (npm run demo)
 docs/presets.md            how to write a preset
 ```
 New presets: see [docs/presets.md](docs/presets.md).
