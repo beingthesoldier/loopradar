@@ -11,7 +11,8 @@ const presetsHref = (cat, v) => '#/presets' + (cat !== 'all' ? '/' + cat : '') +
 
 // routes: #/ home, #/about, #/presets/…  (links from before Presets existed, #/all, #/dark/radar, still work)
 function parseRoute() {
-  let parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  // anything after ? in the hash is for the page itself (the account page reads ?paid= when Robokassa sends people back)
+  let parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean);
   if (parts[0] === 'all' || isCat(parts[0])) {
     parts = ['presets', ...(parts[0] === 'all' ? parts.slice(1) : parts)];
     history.replaceState(null, '', '#/' + parts.join('/'));
