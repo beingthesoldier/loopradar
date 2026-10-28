@@ -1,6 +1,6 @@
 // The account button in the header (gallery and studio): signed out, the sign-in form (email, then the code
 // from the email); signed in, who you are, your access, the account page and signing out.
-import { configured, initAuth, onAuth, signOut } from './auth.js';
+import { configured, initAuth, onAuth, signOut, isPaid, paidUntil } from './auth.js';
 import { signinForm } from './signin.js';
 
 const btn = document.querySelector('.acct-btn'), menu = document.querySelector('.acct-menu');
@@ -20,7 +20,8 @@ function render(st) {
     return;
   }
   menu.appendChild(el('span', { class: 'acct-email' }, st.user.email || ''));
-  menu.appendChild(el('span', {}, st.profile && st.profile.access === 'paid' ? 'Full access' : 'Free presets'));
+  const until = paidUntil(st.profile);
+  menu.appendChild(el('span', {}, isPaid(st.profile) ? (until ? `Full access until ${until.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'Full access') : 'Free presets'));
   menu.appendChild(el('a', { href: accountHref }, 'Your account'));
   const out = el('button', { type: 'button', class: 'acct-link' }, 'Sign out');
   out.addEventListener('click', () => signOut());

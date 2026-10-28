@@ -1,5 +1,5 @@
-// Accounts, on Supabase: sign in with a link sent by email, who is signed in, their access (free or paid),
-// and their saved looks. Shared by the gallery and the studio; everything here is a no-op until
+// Accounts, on Supabase: sign in with a code sent by email, who is signed in, their access (free, or a paid
+// month that ends on paid_until), paying for a month through Robokassa, and their saved looks. Shared by the gallery and the studio; everything here is a no-op until
 // config.js is filled in, so the site keeps working without it.
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
@@ -14,7 +14,7 @@ function client() {
     .catch(e => { console.error('accounts unavailable', e); return null; }));
 }
 
-// state: { ready, user, profile: { email, access } }
+// state: { ready, user, profile: { email, access, paid_until } }
 let state = { ready: false, user: null, profile: null };
 const listeners = new Set();
 export const getState = () => state;
@@ -23,7 +23,7 @@ function emit(patch) { state = { ...state, ...patch }; for (const f of listeners
 
 async function loadProfile(sb, user) {
   if (!user) return null;
-  const { data, error } = await sb.from('profiles').select('email, access').eq('id', user.id).maybeSingle();
+  const { data, error } = await sb.from('profiles').select('email, access, paid_until').eq('id', user.id).maybeSingle();
   if (error) console.error(error);
   return data || { email: user.email, access: 'free' };
 }
@@ -62,7 +62,31 @@ export async function verifyCode(email, token) {
 }
 export async function signOut() { const sb = await client(); if (sb) await sb.auth.signOut(); emit({ user: null, profile: null }); }
 
-export const hasPaid = () => !!(state.profile && state.profile.access === 'paid');
+// paid: a month that hasn't run out yet, or access given by hand ('paid' with no end date)
+export const paidUntil = (p = state.profile) => p && p.paid_until ? new Date(p.paid_until) : null;
+export const isPaid = (p = state.profile) => !!p && (p.access === 'paid' || (!!paidUntil(p) && paidUntil(p) > new Date()));
+export const hasPaid = () => isPaid();
+
+// read the profile again (after a payment, the server moves paid_until a month on)
+export async function refreshProfile() {
+  const sb = await client(); if (!sb || !state.user) return null;
+  const profile = await loadProfile(sb, state.user);
+  emit({ profile });
+  return profile;
+}
+
+// a month of full access: the server writes the order and signs it, and the browser goes to Robokassa to pay
+export async function startPayment() {
+  const sb = await client(); if (!sb || !state.user) throw new Error('Sign in first.');
+  const { data, error } = await sb.functions.invoke('pay', { body: {} });
+  if (error) {
+    let msg = 'Payments are not open yet. Try again a bit later.';
+    try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
+    throw new Error(msg);
+  }
+  if (!data || !data.url) throw new Error('Payments are not open yet. Try again a bit later.');
+  location.href = data.url;
+}
 // free visuals export for everyone; paid ones for accounts with paid access
 export const canExport = v => !v || v.access !== 'paid' || hasPaid();
 
