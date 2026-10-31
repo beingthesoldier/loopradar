@@ -96,6 +96,22 @@ export const VISUALS = [
     look: { preset: 'coil', quant: 16, coil: { view: 'desk', form: 'coil', pal: 'night', push: 1, breath: 0.6 } },
     hide: ['view'],
     posterAt: 4.4
+  },
+  {
+    id: 'nodes', title: 'Nodes', category: 'graphic', preset: 'nodes', access: 'paid',
+    line: 'The melody growing as a graph',
+    about: 'The melody as a graph that grows while it plays, like the graph view of a notes app. Every pitch is a node, linked to the pitches it moves to; when a note plays, a light runs along the link, its node fills with colour and a new branch grows out of it. Branches fold back after a few bars, so the graph keeps changing, and the whole of it turns slowly in 3D. Underneath, the melody as a piano roll. Best with the melody as a MIDI.',
+    look: { preset: 'nodes', quant: 16, nodes: { pal: 'cloud', motion: 'orbit', growth: 0.5, walk: 'on', labels: 'on', zoom: 2 } },
+    hide: [],
+    posterAt: 5
+  },
+  {
+    id: 'sonar', title: 'Sonar', category: 'soft', preset: 'sonar', access: 'paid',
+    line: 'Notes blooming as cells on a slow sonar',
+    about: 'A slow, soft radar. A beam sweeps the scope and every melody note blooms into a cell where it passes: its angle is its moment, its distance from the centre its pitch. Cells press together and their walls glow, brightest where three meet, with fine fibres running out to the rim. Kicks send a sonar ping out from the centre. Dark or light. Best with the melody as a MIDI.',
+    look: { preset: 'sonar', quant: 16, sonar: { pal: 'night', sweep: 2, cell: 1, glow: 0.7, ping: 0.5, fiber: 0.6, labels: 'on', grid: 'on' } },
+    hide: [],
+    posterAt: 8.6
   }
 ];
 
