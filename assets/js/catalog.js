@@ -6,7 +6,7 @@
 
 // how access reads on the site, and what full access costs (payments themselves aren't connected yet)
 export const ACCESS_LABEL = { free: 'Free', paid: 'Full access' };
-export const PRICE = '$5 a month (499 ₽)';
+export const PRICE = '499 ₽ a month (about $5)';
 export const accessLabel = v => ACCESS_LABEL[v.access === 'free' ? 'free' : 'paid'];
 
 export const CATEGORIES = [
