@@ -1,11 +1,12 @@
-// NODES: the melody as a graph that grows while it plays, like Obsidian's graph view, over a soft piano roll.
-// The beat itself is the centre node. Every pitch the melody uses is a hub, linked to the pitches it moves
-// to (a link gets heavier the more often that step is taken); the hubs are laid out once, in 3D, by a small
-// force simulation, and the whole graph turns slowly (once per loop, or sways). When a note plays, a light
-// runs along the link from the note before, its hub swells and takes its colour, and a new branch grows out
-// of it with a leaf at the end; a long note grows a second twig off the leaf. Branches live a few bars and
-// fold back, so the graph keeps changing bar to bar, and what has played lately is warm while the rest
-// stays a pale outline. Everything is worked out from the time alone, so the loop has no seam.
+// NODES: the melody as a graph that grows out of one point while it plays, over a soft piano roll.
+// Every loop starts from a single point, the beat itself. Each note that plays becomes a new node and grows
+// out of the node of the closest pitch heard in the bar before it (the first ones out of the centre), so the
+// melody branches the way it moves. Nodes sit further out the later they play: bar 1 close round the point,
+// bar 2 a shell further out, then 3, 4…, so the graph keeps moving out into space and the camera pulls back
+// to keep it in frame. A faint ring marks each bar's shell. A note's node swells while it sounds; a light
+// runs out along its link as it grows; nodes of the same pitch are linked too, like a notes app's graph view.
+// In the last moments of the loop the whole graph draws back into the point, so the next loop starts clean.
+// Everything is worked out from the time alone, so the loop has no seam.
 // The bottom third is the melody as a piano roll (rounded notes, a light grid) scrolling under a playhead.
 import { S, segLen, barDur } from '../state.js';
 import { ctx, W, H, u, cx, spaced, MONO } from '../render/canvas.js';
@@ -44,20 +45,23 @@ function lit(age, dur) {
   const r = (age - dur) / 0.5; return r < 1 ? (1 - r) * (1 - r) : 0;
 }
 
+
+const smooth = k => k * k * (3 - 2 * k);
+const shell = t => 0.35 + 0.6 * Math.max(0, t) ** 0.85;   // how far out a note sits, t in bars: each bar a shell further out
+
 const NODES = {
   id: 'nodes', name: 'Nodes',
-  defaults: { pal: 'cloud', motion: 'orbit', growth: 0.5, walk: 'on', labels: 'on', zoom: 2 },
+  defaults: { pal: 'cloud', motion: 'orbit', walk: 'on', web: 'on', labels: 'on', zoom: 2 },
   controls: [
     { key: 'pal', label: 'Colour', type: 'choice', options: [['cloud', 'cloud'], ['paper', 'paper'], ['sky', 'sky'], ['night', 'night'], ['aurora', 'aurora']], then: 'buildBG' },
     { key: 'motion', label: 'Motion', type: 'choice', options: [['orbit', 'orbit'], ['sway', 'sway'], ['still', 'still']] },
-    // how long a branch lives before it folds back: under a bar … about four bars
-    { key: 'growth', label: 'Branches live', type: 'range', min: 0, max: 1, step: 0.01, format: v => `${(0.75 + 3.25 * v).toFixed(1)} bars` },
-    { key: 'walk', label: 'Light on the links', type: 'choice', options: [['on', 'on'], ['off', 'off']] },
+    { key: 'walk', label: 'Light on new links', type: 'choice', options: [['on', 'on'], ['off', 'off']] },
+    { key: 'web', label: 'Link same notes', type: 'choice', options: [['on', 'on'], ['off', 'off']] },
     { key: 'labels', label: 'Note names', type: 'choice', options: [['on', 'on'], ['off', 'off']] },
     { key: 'zoom', label: 'Piano roll', type: 'choice', options: [[1, '1 bar'], [2, '2 bars'], [4, '4 bars']] }
   ],
   bg: document.createElement('canvas'),
-  notes: [], hubs: [], links: [],
+  notes: [],
 
   setup() { this.bg.width = W; this.bg.height = H; this.bctx = this.bg.getContext('2d'); this.layoutBoxes(); this.buildBG(); },
 
@@ -101,191 +105,137 @@ const NODES = {
       if (!n.dur) { let j = i + 1; while (j < notes.length && notes[j].rt - n.rt < 1e-3) j++; const nx = j < notes.length ? notes[j].rt : (notes[0] ? notes[0].rt + sl : n.rt + bd / 2); n.dur = clamp((nx - n.rt) * 0.9, bd / 16, bd / 2); }
       n.dur = Math.min(n.dur, sl * 0.9); n.pc = mod(n.m, 12); n.i = i;
     });
-    this.notes = notes;
-
-    // hubs: one per pitch; hub 0 is the beat itself, in the middle
-    const byM = new Map(), hubs = [{ root: true, m: null, count: 0 }];
-    for (const n of notes) { if (!byM.has(n.m)) { byM.set(n.m, hubs.length); hubs.push({ m: n.m, count: 0 }); } n.hub = byM.get(n.m); hubs[n.hub].count++; }
-    // links: each note to the nearest pitch of the moment before (a chord also links its own notes)
-    const groups = [];
-    for (const n of notes) { const gl = groups[groups.length - 1]; if (gl && n.rt - gl.rt < 1e-3) gl.notes.push(n); else groups.push({ rt: n.rt, notes: [n] }); }
-    const L = new Map(), link = (a, b) => { if (a === b) return; const k = a < b ? `${a}|${b}` : `${b}|${a}`; L.set(k, (L.get(k) || 0) + 1); };
-    groups.forEach((gr, k) => {
-      const prev = groups[(k - 1 + groups.length) % groups.length];
-      for (let i = 1; i < gr.notes.length; i++) link(gr.notes[i - 1].hub, gr.notes[i].hub);
-      for (const n of gr.notes) {
-        if (groups.length < 2) { n.from = 0; n.fromRt = n.rt - 0.3; continue; }
-        const p = prev.notes.reduce((b, q) => Math.abs(q.m - n.m) < Math.abs(b.m - n.m) ? q : b, prev.notes[0]);
-        n.from = p.hub; n.fromRt = p.rt; link(p.hub, n.hub);
-      }
-    });
-    // the centre holds the three pitches heard most
-    hubs.map((h, i) => [h.count, i]).filter(a => a[1] > 0).sort((a, b) => b[0] - a[0]).slice(0, 3).forEach(([, i]) => link(0, i));
-    this.links = [...L.entries()].map(([k, w]) => { const [a, b] = k.split('|').map(Number); return { a, b, w }; });
-    this.hubs = hubs;
-    this.layoutGraph();
-
-    // branches: every note grows one off its hub, a long note a second off the leaf
-    const beat = bd / 4;
+    const ms = notes.map(n => n.m), mLo = ms.length ? Math.min(...ms) : 60, mHi = ms.length ? Math.max(...ms) : 72;
+    // where each note grows: out of the closest pitch heard within the bar before it (or the centre),
+    // carrying on in that node's direction with a turn of its own, as far out as its time in the loop
+    const lastOf = new Map();
     for (const n of notes) {
-      const h = hubs[n.hub].p, out = norm(Math.hypot(...h) > 1e-3 ? h : dir3(n.m)), d = dir3(n.i * 3.17 + n.m), len = 0.17 + 0.11 * hsh(n.i + 0.5);
-      const dv = norm([out[0] * 1.1 + d[0], out[1] * 1.1 + d[1], out[2] * 1.1 + d[2]]);
-      n.leaf = [h[0] + dv[0] * len, h[1] + dv[1] * len, h[2] + dv[2] * len];
-      if (n.dur >= beat * 0.5) {
-        const d2 = dir3(n.i * 5.71 + 1), tv = norm([dv[0] + d2[0] * 0.9, dv[1] + d2[1] * 0.9, dv[2] + d2[2] * 0.9]), tl = len * 0.6;
-        n.twig = [n.leaf[0] + tv[0] * tl, n.leaf[1] + tv[1] * tl, n.leaf[2] + tv[2] * tl];
-        n.twigAt = Math.min(n.dur * 0.5, beat * 0.5);
-      } else n.twig = null;
+      let parent = null;
+      for (let j = n.i - 1; j >= 0; j--) {
+        const c = notes[j]; if (n.rt - c.rt < 1e-3) continue; if (n.rt - c.rt > bd + 1e-6) break;
+        if (!parent || Math.abs(c.m - n.m) < Math.abs(parent.m - n.m)) parent = c;
+      }
+      const r = dir3(n.i * 3.17 + n.m * 0.13 + 1.1);
+      let d;
+      if (parent) d = norm([parent.dir[0] + r[0] * 0.95, parent.dir[1] + r[1] * 0.95, parent.dir[2] + r[2] * 0.95]);
+      else { const up = mHi > mLo ? ((mLo + mHi) / 2 - n.m) / (mHi - mLo) : 0; d = norm([r[0], r[1] * 0.5 + up * 0.9, r[2]]); }   // y points down: high notes up
+      const rad = shell(n.rt / bd);
+      n.dir = d; n.p = [d[0] * rad, d[1] * rad, d[2] * rad]; n.parent = parent ? parent.i : -1;
+      const same = lastOf.get(n.m); n.web = same && same !== parent ? same.i : -1; lastOf.set(n.m, n);
     }
+    this.notes = notes;
     // the piano roll's rows: the melody's range, at least an octave
-    let lo = 60, hi = 71;
-    if (notes.length) { lo = Math.min(...notes.map(n => n.m)) - 1; hi = Math.max(...notes.map(n => n.m)) + 1; }
+    let lo = mLo - 1, hi = mHi + 1;
     if (hi - lo < 11) { const c = (hi + lo) / 2; lo = Math.floor(c - 5.5); hi = lo + 11; }
     this.lo = lo; this.hi = hi;
   },
 
-  // hubs in 3D: pushed apart, pulled together along their links, higher notes a little higher up
-  layoutGraph() {
-    const hubs = this.hubs, n = hubs.length, links = this.links;
-    const ms = hubs.slice(1).map(h => h.m), mLo = ms.length ? Math.min(...ms) : 60, mHi = ms.length ? Math.max(...ms) : 72;
-    const P = hubs.map((h, i) => {
-      if (h.root) return [0, 0, 0];
-      const k = i - 0.5, z = 1 - 2 * k / Math.max(1, n - 1), r = Math.sqrt(Math.max(0, 1 - z * z)), a = i * 2.39996;
-      return [r * Math.cos(a) * 0.8, z * 0.8, r * Math.sin(a) * 0.8];
-    });
-    const V = P.map(() => [0, 0, 0]), L0 = 0.62;
-    for (let it = 0; it < 420; it++) {
-      const F = P.map(() => [0, 0, 0]);
-      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-        const d = [P[i][0] - P[j][0], P[i][1] - P[j][1], P[i][2] - P[j][2]], q = d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + 0.01, f = 0.035 / q;
-        for (let c = 0; c < 3; c++) { F[i][c] += d[c] * f; F[j][c] -= d[c] * f; }
-      }
-      for (const { a, b, w } of links) {
-        const d = [P[b][0] - P[a][0], P[b][1] - P[a][1], P[b][2] - P[a][2]], l = Math.hypot(...d) || 1e-3, f = (l - L0) * 0.06 * Math.sqrt(Math.min(4, w)) / l;
-        for (let c = 0; c < 3; c++) { F[a][c] += d[c] * f; F[b][c] -= d[c] * f; }
-      }
-      for (let i = 0; i < n; i++) {
-        if (i > 0) { const ty = mHi > mLo ? ((mLo + mHi) / 2 - hubs[i].m) / (mHi - mLo) * 0.9 : 0; F[i][1] += (ty - P[i][1]) * 0.02; }   // y points down: high notes up
-        for (let c = 0; c < 3; c++) F[i][c] -= P[i][c] * (i ? 0.004 : 0.03);   // the beat stays near the middle
-        for (let c = 0; c < 3; c++) { V[i][c] = (V[i][c] + F[i][c]) * 0.82; P[i][c] += V[i][c]; }
-      }
-    }
-    // centred on its middle, scaled so the widest point of the turn is 1; the height is kept for the camera
-    const m = [0, 1, 2].map(c => P.reduce((a, p) => a + p[c], 0) / n);
-    for (const p of P) for (let c = 0; c < 3; c++) p[c] -= m[c];
-    const rxz = Math.max(0.3, ...P.map(p => Math.hypot(p[0], p[2])));
-    hubs.forEach((h, i) => { h.p = P[i].map(v => v / rxz); });
-    this.span = Math.max(0.4, ...hubs.map(h => Math.abs(h.p[1])));
-  },
-
   /* ---------------- a frame ---------------- */
-  draw(tau, F) {
+  draw(tau) {
     const N = S.nodes, pal = this.pal || PALS.cloud, sl = segLen(), bd = barDur();
     if (!this.gh) this.layoutBoxes();
     ctx.drawImage(this.bg, 0, 0);
-    const notes = this.notes, hubs = this.hubs;
-    const life = Math.min(sl * 0.9, bd * (0.75 + 3.25 * N.growth));
-    const colOf = pc => pal.hues ? pal.hues[pc] : pal.accent;
+    const notes = this.notes, colOf = pc => pal.hues ? pal.hues[pc] : pal.accent;
 
-    // the camera: a slow turn round the vertical, tilted a little so the depth shows
+    // the loop's last moments: everything draws back into the point
+    const close = Math.min(bd * 0.5, sl * 0.12), k = tau > sl - close ? smooth((tau - (sl - close)) / close) : 0, keep = 1 - k;
     const th = N.motion === 'orbit' ? TAU * tau / sl : N.motion === 'sway' ? 0.5 * Math.sin(TAU * tau / sl) : 0;
     const ct = Math.cos(th), st = Math.sin(th), tilt = 0.32, cp = Math.cos(tilt), sp = Math.sin(tilt);
-    const gcx = cx, gcy = this.gy + this.gh * 0.5, SC = Math.min(this.gw * 0.36, this.gh * 0.38 / ((this.span || 1) + 0.3));
-    const proj = p => {
-      const x = p[0] * ct - p[2] * st, z0 = p[0] * st + p[2] * ct, y = p[1] * cp - z0 * sp, z = p[1] * sp + z0 * cp, f = 1 / (1 + z * 0.3);
-      return { x: gcx + x * SC * f, y: gcy + y * SC * f, f, z, d: clamp(0.38 + 0.62 * (1 - (z + 1.2) / 2.4), 0.25, 1) };
-    };
-    const HP = hubs.map(h => proj(h.p));
 
-    // how each hub is doing: lit while its notes sound, warm while they've played lately
-    const act = new Float32Array(hubs.length), warm = new Float32Array(hubs.length);
+    // the nodes born so far: each slides out of its parent as it grows (and all of them back in at the end)
+    const born = [], at = new Map(), O = [0, 0, 0];
     for (const n of notes) {
-      const age = mod(tau - n.rt, sl), a = lit(age, n.dur);
-      if (a > act[n.hub]) act[n.hub] = a;
-      const w = age < life ? (1 - age / life) ** 1.2 : 0; if (w > warm[n.hub]) warm[n.hub] = w;
+      if (tau < n.rt) break;
+      const age = tau - n.rt, g = smooth(Math.min(1, age / 0.3)), from = n.parent >= 0 ? notes[n.parent].p : O;
+      const w = [(from[0] + (n.p[0] - from[0]) * g) * keep, (from[1] + (n.p[1] - from[1]) * g) * keep, (from[2] + (n.p[2] - from[2]) * g) * keep];
+      const e = { n, w, g, a: lit(age, n.dur), age }; born.push(e); at.set(n.i, e);
     }
-    let rootAct = 0; for (let i = 1; i < hubs.length; i++) rootAct = Math.max(rootAct, act[i] * 0.4);
+    // the camera flies with the graph: it aims between the point and what's grown, and pulls back so all of it fits
+    let sw = 1, c = [0, 0, 0];
+    for (const e of born) { const q = 0.6 * e.g; sw += q; for (let j = 0; j < 3; j++) c[j] += e.w[j] * q; }
+    c = c.map(v => v / sw * 0.8);
+    let ext = Math.hypot(...c);
+    for (const e of born) ext = Math.max(ext, Math.hypot(e.w[0] - c[0], e.w[1] - c[1], e.w[2] - c[2]));
+    ext = Math.max(shell(0) + 0.2, ext + 0.25);
+    const gcx = cx, gcy = this.gy + this.gh * 0.5, SC = Math.min(this.gw, this.gh) * 0.47 / ext;
+    const proj = p => {
+      const px = p[0] - c[0], py = p[1] - c[1], pz = p[2] - c[2];
+      const x = px * ct - pz * st, z0 = px * st + pz * ct, y = py * cp - z0 * sp, z = (py * sp + z0 * cp) / ext, f = 1 / (1 + z * 0.3);
+      return { x: gcx + x * SC * f, y: gcy + y * SC * f, f, z, d: clamp(0.4 + 0.6 * (1 - (z + 1.2) / 2.4), 0.25, 1) };
+    };
+    for (const e of born) e.P = proj(e.w);
+    const root = proj(O), fade = keep;
+    const bar = Math.min(S.lenBars, Math.floor(Math.min(tau, sl - 1e-6) / bd) + 1);
 
     ctx.save(); ctx.beginPath(); ctx.rect(0, this.gy - 30 * u, W, this.gh + 60 * u); ctx.clip();
-    ctx.lineCap = 'round';
-    // links between hubs: hairlines, heavier for steps taken often, brighter for steps taken lately
-    for (const L of this.links) {
-      const A = HP[L.a], B = HP[L.b], w = Math.max(warm[L.a], warm[L.b]) * Math.min(warm[L.a] + 0.25, warm[L.b] + 0.25);
-      ctx.globalAlpha = (0.3 + 0.5 * w) * Math.min(A.d, B.d);
-      ctx.strokeStyle = w > 0.05 && pal.hues ? mix(pal.link, colOf(hubs[L.b].m != null ? mod(hubs[L.b].m, 12) : 0), w * 0.6) : pal.link;
-      ctx.lineWidth = (1 + 0.5 * Math.log2(1 + L.w)) * u;
-      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+    // a faint ring for each bar's shell, as the graph reaches it
+    ctx.lineWidth = 1 * u; ctx.font = `400 ${11 * u}px ${MONO}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    for (let b = 1; b <= bar; b++) {
+      const t0 = (b - 1) * bd, show = smooth(clamp((tau - t0) / 0.5, 0, 1)) * fade, R = shell(b - 0.5) * SC * keep;
+      if (show < 0.01 || R < 4 * u) continue;
+      ctx.globalAlpha = 0.24 * show; ctx.strokeStyle = pal.ink; ctx.setLineDash([3 * u, 6 * u]);
+      ctx.beginPath(); ctx.ellipse(root.x, root.y, R, R * 0.92, 0, 0, TAU); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 0.7 * show; ctx.fillStyle = pal.mute;
+      ctx.fillText(String(S.startBar + b), root.x + R * 0.7071 + 5 * u, root.y - R * 0.92 * 0.7071 - 5 * u);
     }
-    // branches: grow out in a third of a second, live a while, fold back
-    for (const n of notes) {
-      const age = mod(tau - n.rt, sl); if (age >= life) continue;
-      const grow = ease(Math.min(1, age / 0.35)), tail = life * 0.3, k = age > life - tail ? (life - age) / tail : 1, ext = grow * (0.35 + 0.65 * k);
-      const h = hubs[n.hub].p, Ph = HP[n.hub], tip = [h[0] + (n.leaf[0] - h[0]) * ext, h[1] + (n.leaf[1] - h[1]) * ext, h[2] + (n.leaf[2] - h[2]) * ext], T = proj(tip);
-      const a = lit(age, n.dur), col = colOf(n.pc);
-      ctx.globalAlpha = (0.3 + 0.5 * k) * T.d; ctx.strokeStyle = a > 0.05 ? col : pal.link; ctx.lineWidth = (0.9 + 0.6 * a) * u;
-      ctx.beginPath(); ctx.moveTo(Ph.x, Ph.y); ctx.lineTo(T.x, T.y); ctx.stroke();
-      // the twig off the leaf of a long note
-      if (n.twig && age > n.twigAt) {
-        const g2 = ease(Math.min(1, (age - n.twigAt) / 0.4)) * (0.35 + 0.65 * k), tw = [n.leaf[0] + (n.twig[0] - n.leaf[0]) * g2, n.leaf[1] + (n.twig[1] - n.leaf[1]) * g2, n.leaf[2] + (n.twig[2] - n.leaf[2]) * g2], Tw = proj(tw);
-        ctx.beginPath(); ctx.moveTo(T.x, T.y); ctx.lineTo(Tw.x, Tw.y); ctx.stroke();
-        ctx.globalAlpha = (0.45 + 0.4 * k) * Tw.d; ctx.fillStyle = mix(col, pal.bg, 0.35 * (1 - a));
-        ctx.beginPath(); ctx.arc(Tw.x, Tw.y, (1.6 + 1.2 * g2) * u * Tw.f, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1; ctx.lineCap = 'round';
+    // links between nodes of the same pitch: hairlines
+    if (N.web !== 'off') for (const e of born) {
+      if (e.n.web < 0) continue; const o = at.get(e.n.web); if (!o) continue;
+      ctx.globalAlpha = 0.16 * e.g * fade * Math.min(e.P.d, o.P.d); ctx.strokeStyle = pal.link; ctx.lineWidth = 0.8 * u;
+      ctx.beginPath(); ctx.moveTo(o.P.x, o.P.y); ctx.lineTo(e.P.x, e.P.y); ctx.stroke();
+    }
+    // each node's link to the node it grew out of, tinted with its colour
+    for (const e of born) {
+      const from = e.n.parent >= 0 ? at.get(e.n.parent).P : root, col = colOf(e.n.pc);
+      ctx.globalAlpha = (0.5 + 0.4 * e.a) * fade * Math.min(e.P.d, from.d); ctx.strokeStyle = pal.hues ? mix(pal.link, col, 0.45) : pal.link; ctx.lineWidth = (1.2 + 0.9 * e.a) * u;
+      ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(e.P.x, e.P.y); ctx.stroke();
+      // the light running out along a new link
+      if (N.walk !== 'off' && e.age < 0.45) {
+        const q = 1 - e.age / 0.45, bx = from.x + (e.P.x - from.x) * 0.55, by = from.y + (e.P.y - from.y) * 0.55;
+        ctx.globalAlpha = 0.85 * q * fade; ctx.strokeStyle = col; ctx.lineWidth = 2.2 * u;
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(e.P.x, e.P.y); ctx.stroke();
       }
-      ctx.globalAlpha = (0.55 + 0.45 * k) * T.d; ctx.fillStyle = a > 0.05 ? col : mix(col, pal.bg, 0.45);
-      ctx.beginPath(); ctx.arc(T.x, T.y, (2.2 + 2.2 * n.s + 1.4 * a) * u * T.f * grow, 0, TAU); ctx.fill();
     }
-    // the walk: a light runs along the link from the note before and arrives as the note plays
-    if (N.walk !== 'off') for (const n of notes) {
-      if (n.from == null || n.from === n.hub) continue;
-      const T = Math.min(mod(n.rt - n.fromRt, sl) || sl, 0.45), dt = mod(tau - (n.rt - T), sl); if (dt >= T) continue;
-      const p = ease(dt / T), A = HP[n.from], B = HP[n.hub], q = Math.max(0, p - 0.3);
-      const x = A.x + (B.x - A.x) * p, y = A.y + (B.y - A.y) * p, x0 = A.x + (B.x - A.x) * q, y0 = A.y + (B.y - A.y) * q, col = colOf(n.pc);
-      ctx.globalAlpha = 0.55 * Math.min(A.d, B.d); ctx.strokeStyle = col; ctx.lineWidth = 2 * u;
-      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x, y); ctx.stroke();
-      ctx.globalAlpha = 0.95; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 3 * u, 0, TAU); ctx.fill();
-    }
-    // hubs, far ones first: a pale outline until played, then their colour; swell and a ring while sounding
-    const order = hubs.map((h, i) => i).sort((a, b) => HP[b].z - HP[a].z);
-    for (const i of order) {
-      const h = hubs[i], P = HP[i];
-      if (h.root) {
-        const r = (13 + 3 * rootAct) * u * P.f;
-        ctx.globalAlpha = 0.9 * P.d; ctx.fillStyle = pal.ink; ctx.beginPath(); ctx.arc(P.x, P.y, r, 0, TAU); ctx.fill();
-        ctx.globalAlpha = 0.25 * P.d; ctx.strokeStyle = pal.ink; ctx.lineWidth = 1 * u; ctx.beginPath(); ctx.arc(P.x, P.y, r + 7 * u * P.f, 0, TAU); ctx.stroke();
-        continue;
-      }
-      const a = act[i], w = warm[i], col = colOf(mod(h.m, 12)), r = (6 + 3 * Math.sqrt(h.count)) * u * P.f * (1 + 0.3 * a);
-      if (a > 0.02) { ctx.globalAlpha = 0.35 * a * P.d; ctx.strokeStyle = col; ctx.lineWidth = 1.4 * u; ctx.beginPath(); ctx.arc(P.x, P.y, r + (5 + 5 * a) * u * P.f, 0, TAU); ctx.stroke(); }
-      ctx.globalAlpha = P.d; ctx.fillStyle = pal.bg; ctx.beginPath(); ctx.arc(P.x, P.y, r + 2 * u, 0, TAU); ctx.fill();
-      const fillK = Math.max(a, w * 0.85);
-      ctx.fillStyle = mix(pal.node, col, fillK); ctx.globalAlpha = (0.55 + 0.45 * Math.max(fillK, 0.2)) * P.d;
+    // the point everything grows from: the beat
+    ctx.globalAlpha = 0.9; ctx.fillStyle = pal.ink; ctx.beginPath(); ctx.arc(root.x, root.y, 6.5 * u, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 0.25; ctx.strokeStyle = pal.ink; ctx.lineWidth = 1 * u; ctx.beginPath(); ctx.arc(root.x, root.y, 13 * u, 0, TAU); ctx.stroke();
+    // the nodes, far ones first: their colour, a little paler as they get older; swell and a ring while sounding
+    born.sort((a, b) => b.P.z - a.P.z);
+    for (const e of born) {
+      const n = e.n, P = e.P, col = colOf(n.pc), r = (5 + 4 * n.s + 3.5 * Math.min(1, n.dur / (bd / 2))) * u * P.f * (0.3 + 0.7 * e.g) * (1 + 0.4 * e.a);
+      const warm = clamp(1 - e.age / (bd * 4), 0.4, 1);
+      if (e.a > 0.02) { ctx.globalAlpha = 0.4 * e.a * fade * P.d; ctx.strokeStyle = col; ctx.lineWidth = 1.4 * u; ctx.beginPath(); ctx.arc(P.x, P.y, r + (4 + 5 * e.a) * u * P.f, 0, TAU); ctx.stroke(); }
+      ctx.globalAlpha = fade * P.d; ctx.fillStyle = pal.bg; ctx.beginPath(); ctx.arc(P.x, P.y, r + 1.6 * u, 0, TAU); ctx.fill();
+      ctx.fillStyle = e.a > 0.05 ? col : mix(pal.node, col, warm); ctx.globalAlpha = (0.6 + 0.4 * Math.max(e.a, warm)) * fade * P.d;
       ctx.beginPath(); ctx.arc(P.x, P.y, r, 0, TAU); ctx.fill();
-      if (N.labels !== 'off') {
-        ctx.globalAlpha = (0.28 + 0.72 * Math.max(a, w * 0.7)) * P.d; ctx.fillStyle = pal.ink;
-        ctx.font = `${a > 0.5 ? 500 : 400} ${14.5 * u * Math.min(1.15, P.f)}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-        ctx.fillText(nameOf(h.m), P.x, P.y + r + 6 * u);
-      }
     }
-    // the centre node is the beat: its name next to it
-    if (N.labels !== 'off' && hubs.length) {
-      const P = HP[0]; ctx.globalAlpha = 0.85 * P.d; ctx.fillStyle = pal.ink; ctx.font = `500 ${15 * u}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(titleCase(S.title || 'kristudio'), P.x, P.y + 22 * u * P.f);
+    // names: a note's name shows as it's born and while it sounds; the beat's under the point
+    if (N.labels !== 'off') {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      for (const e of born) {
+        const v = Math.max(e.a, 1 - e.age / (bd * 0.6)); if (v <= 0.02) continue;
+        ctx.globalAlpha = 0.85 * v * fade * e.P.d; ctx.fillStyle = pal.ink; ctx.font = `${e.a > 0.5 ? 500 : 400} ${13.5 * u}px ${SANS}`;
+        ctx.fillText(nameOf(e.n.m), e.P.x, e.P.y + 9 * u * e.P.f + 5 * u);
+      }
+      ctx.globalAlpha = 0.8; ctx.fillStyle = pal.ink; ctx.font = `500 ${14 * u}px ${SANS}`;
+      ctx.fillText(titleCase(S.title || 'kristudio'), root.x, root.y + 19 * u);
     }
     ctx.restore(); ctx.globalAlpha = 1;
 
-    this.header(pal);
+    this.header(pal, Math.round(born.length * keep), bar);
     this.roll(tau, pal, colOf);
     waveStrip(tau, { x: this.mx, y: this.stripY, w: W - 2 * this.mx, ink: pal.ink, dim: pal.grid, mute: pal.mute, head: pal.hues ? pal.ink : pal.accent });
   },
 
-  header(pal) {
+  header(pal, count, bar) {
     const mx = this.mx, y = H * SAFE_TOP;
     const title = titleCase(S.title || ''); let ts = 50 * u; ctx.font = `300 ${ts}px ${SANS}`;
     const tw = ctx.measureText(title).width, max = W * 0.6; if (tw > max) { ts *= max / tw; ctx.font = `300 ${ts}px ${SANS}`; }
     ctx.fillStyle = pal.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(title, mx, y);
     ctx.font = `400 ${14 * u}px ${MONO}`; ctx.fillStyle = pal.mute;
     spaced([(S.tag || '').toUpperCase(), `${+S.bpm.toFixed(2)} BPM`, (S.key || '').toUpperCase()].filter(Boolean).join('  ·  '), mx, y + 32 * u, 2 * u, 'left');
-    spaced(`${Math.max(0, this.hubs.length - 1)} NODES · ${this.links.length} LINKS`, W - mx, y, 2 * u, 'right');
+    spaced(`${String(count).padStart(2, '0')} NODES · BAR ${S.startBar + bar}`, W - mx, y, 2 * u, 'right');
   },
 
   // the melody as a piano roll: rounded notes, a light dotted grid, scrolling under the playhead
