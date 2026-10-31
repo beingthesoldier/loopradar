@@ -8,8 +8,10 @@ import metro from './metro.js';
 import seismo from './seismo.js';
 import strings from './strings.js';
 import coil from './coil.js';
+import nodes from './nodes.js';
+import sonar from './sonar.js';
 
-export const PRESETS = { radar, veil, bloom, metro, seismo, strings, coil };
+export const PRESETS = { radar, veil, bloom, metro, seismo, strings, coil, nodes, sonar };
 export const PRESET_IDS = Object.keys(PRESETS);
 
 // every preset's settings live in S[<id>], starting from its defaults
