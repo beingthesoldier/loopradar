@@ -99,17 +99,17 @@ export const VISUALS = [
   },
   {
     id: 'nodes', title: 'Nodes', category: 'graphic', preset: 'nodes', access: 'paid',
-    line: 'The melody growing as a graph',
-    about: 'The melody as a graph that grows while it plays, like the graph view of a notes app. Every pitch is a node, linked to the pitches it moves to; when a note plays, a light runs along the link, its node fills with colour and a new branch grows out of it. Branches fold back after a few bars, so the graph keeps changing, and the whole of it turns slowly in 3D. Underneath, the melody as a piano roll. Best with the melody as a MIDI.',
-    look: { preset: 'nodes', quant: 16, nodes: { pal: 'cloud', motion: 'orbit', growth: 0.5, walk: 'on', labels: 'on', zoom: 2 } },
+    line: 'The melody growing out of one point',
+    about: 'The melody as a graph that grows out of a single point while it plays. Every note becomes a node, growing out of the closest pitch heard in the bar before, so the melody branches the way it moves; bar one stays close to the point, every bar after grows a shell further out, and the camera flies with it. Nodes swell while they sound, notes of the same pitch link up like a graph view, and at the end of the loop it all draws back into the point. Underneath, the melody as a piano roll. Best with the melody as a MIDI.',
+    look: { preset: 'nodes', quant: 16, nodes: { pal: 'cloud', motion: 'orbit', walk: 'on', web: 'on', labels: 'on', zoom: 2 } },
     hide: [],
     posterAt: 5
   },
   {
     id: 'sonar', title: 'Sonar', category: 'soft', preset: 'sonar', access: 'paid',
-    line: 'Notes blooming as cells on a slow sonar',
-    about: 'A slow, soft radar. A beam sweeps the scope and every melody note blooms into a cell where it passes: its angle is its moment, its distance from the centre its pitch. Cells press together and their walls glow, brightest where three meet, with fine fibres running out to the rim. Kicks send a sonar ping out from the centre. Dark or light. Best with the melody as a MIDI.',
-    look: { preset: 'sonar', quant: 16, sonar: { pal: 'night', sweep: 2, cell: 1, glow: 0.7, ping: 0.5, fiber: 0.6, labels: 'on', grid: 'on' } },
+    line: 'A round piano roll on a slow sonar',
+    about: 'A piano roll bent into a circle, on a slow, soft radar. Every note is an arc: it starts at its moment round the circle and runs as long as it lasts; high notes sit out at the rim, low ones near the middle. The beam is the playhead: notes ahead of it wait, the note under it lights up, the ones behind dim and go. Notes are drawn like living cells, with glowing walls, fine fibres and bright walls where they touch; kicks send a sonar ping from the centre. Dark or light. Made for a MIDI melody.',
+    look: { preset: 'sonar', quant: 16, sonar: { pal: 'night', sweep: 2, width: 1, glow: 0.6, ping: 0.5, fiber: 0.6, labels: 'on', grid: 'on' } },
     hide: [],
     posterAt: 8.6
   }
