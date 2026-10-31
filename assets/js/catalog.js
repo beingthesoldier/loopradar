@@ -60,7 +60,7 @@ export const VISUALS = [
   {
     id: 'metro', title: 'Metro', category: 'graphic', preset: 'metro', access: 'paid',
     line: 'The loop as a transit map',
-    about: 'A transit map of the loop. The ring is the loop line and the clock; every melody note is a station on it, and the notes used most run their own lines out of town. Micro trams leave each station as its note plays, and the piano below plays along. Best with the melody as a MIDI.',
+    about: 'A transit map of the loop. A train runs the ring line once per loop, and every melody note is a station on its way: the train reaches each one exactly as its note plays. The notes used most run their own lines out of town, and a car rides out to the terminus each time they play. Kicks thicken the line, the 808 swells the ring, the piano below plays along. Best with the melody as a MIDI.',
     look: { preset: 'metro', quant: 16, metro: { ring: 'circle', pal: 'paper', style: 'clean', trams: 0.5, labels: 'few' } },
     hide: [],
     posterAt: 4.2
